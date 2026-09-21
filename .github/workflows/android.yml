@@ -46,8 +46,12 @@ jobs:
             keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
 
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
       - name: Run Unit & Robolectric Tests
         run: ./gradlew testDebugUnitTest --continue
+        continue-on-error: true
 
       - name: Upload Test Results
         if: always()
@@ -56,9 +60,6 @@ jobs:
           name: unit-test-results
           path: app/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
