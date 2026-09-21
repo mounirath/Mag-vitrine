@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAG VITRINE - Vitrines Virtuelles & E-Commerce en Algérie</title>
+  <meta name="description" content="Application mobile Android MAG VITRINE : vitrines virtuelles des commerçants, recherche caméra par IA Gemini, 58 Wilayas et suivi de commandes en Algérie.">
+  <link rel="icon" type="image/jpeg" href="./assets/ic_mag_vitrine_icon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #047857;
+      --primary-dark: #065f46;
+      --primary-light: #10b981;
+      --accent: #d97706;
+      --accent-light: #f59e0b;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(4, 120, 87, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', 'Tajawal', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 1rem 1.5rem;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand img {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 4px 10px rgba(4, 120, 87, 0.2);
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .brand-text span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.4rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(4, 120, 87, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(4, 120, 87, 0.45);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .hero {
+      max-width: 1200px;
+      margin: 3rem auto 4rem auto;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #ecfdf5;
+      color: var(--primary);
+      border: 1px solid #a7f3d0;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-size: 2.75rem;
+      font-weight: 800;
+      line-height: 1.15;
+      color: #0f172a;
+      margin-bottom: 1.25rem;
+      letter-spacing: -1px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-arabic {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.25rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      direction: rtl;
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+      max-width: 580px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .hero-banner-container {
+      position: relative;
+    }
+
+    .hero-banner-container img {
+      width: 100%;
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      border: 4px solid #ffffff;
+      object-fit: cover;
+    }
+
+    .features-section {
+      max-width: 1200px;
+      margin: 0 auto 5rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .section-header h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow);
+      border-color: #a7f3d0;
+    }
+
+    .feature-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: #ecfdf5;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .download-banner {
+      background: linear-gradient(135deg, #064e3b, #047857);
+      color: #ffffff;
+      border-radius: 24px;
+      padding: 3.5rem 2rem;
+      text-align: center;
+      margin: 2rem auto 5rem auto;
+      max-width: 1100px;
+      box-shadow: 0 20px 35px -10px rgba(4, 120, 87, 0.4);
+    }
+
+    .download-banner h2 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+
+    .download-banner p {
+      font-size: 1.1rem;
+      color: #a7f3d0;
+      max-width: 600px;
+      margin: 0 auto 2rem auto;
+    }
+
+    .btn-light {
+      background: #ffffff;
+      color: var(--primary-dark);
+      font-weight: 700;
+      font-size: 1.05rem;
+      padding: 1rem 2rem;
+    }
+
+    .btn-light:hover {
+      background: #f1f5f9;
+      transform: translateY(-2px);
+    }
+
+    footer {
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+      }
+      .hero-desc {
+        margin: 0 auto 2rem auto;
+      }
+      .hero-buttons {
+        justify-content: center;
+      }
+      .hero-title {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="./" class="brand">
+        <img src="./assets/ic_mag_vitrine_icon.jpg" alt="Logo MAG VITRINE">
+        <div class="brand-text">
+          <h1>MAG VITRINE</h1>
+          <span>Vitrines & E-commerce Algérie</span>
+        </div>
+      </a>
+      <div class="nav-actions">
+        <a href="https://github.com/mounirath/Mag-vitrine" target="_blank" class="btn btn-outline">GitHub Repo</a>
+        <a href="https://github.com/mounirath/Mag-vitrine/actions" target="_blank" class="btn btn-primary">Télécharger l'APK</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-content">
+        <div class="badge">🚀 Android 14+ • Jetpack Compose • IA Gemini</div>
+        <h2 class="hero-title">
+          Vitrines Virtuelles & Commerce Local en <span>Algérie</span>
+        </h2>
+        <div class="hero-arabic">منصة المتاجر الجزائرية والتسوق الذكي في 58 ولاية</div>
+        <p class="hero-desc">
+          L'application tout-en-un pour connecter commerçants et clients à travers les 58 Wilayas : vitrines dynamiques, recherche intelligente par caméra IA, suivi de commandes en direct et support trilingue avec affichage RTL.
+        </p>
+
+        <div class="hero-buttons">
+          <a href="https://github.com/mounirath/Mag-vitrine/actions" target="_blank" class="btn btn-primary">
+            📲 Télécharger le dernier APK (Debug)
+          </a>
+          <a href="https://github.com/mounirath/Mag-vitrine" target="_blank" class="btn btn-outline">
+            ⭐ Voir sur GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-banner-container">
+        <img src="./assets/img_vitrine_hero.jpg" alt="Vitrines MAG VITRINE">
+      </div>
+    </section>
+
+    <section class="features-section">
+      <div class="section-header">
+        <h2>Fonctionnalités Clés</h2>
+        <p>Une expérience fluide, moderne et pensée pour le marché algérien</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🏪</div>
+          <h3>50 Annonces par Magasin</h3>
+          <p>Espace commerçant optimisé avec jauge visuelle de quota, gestion des stocks, photos et mise en avant des promotions.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3>Recherche Caméra par IA</h3>
+          <p>Scannez un article ou une étiquette avec l'appareil photo : l'IA Gemini détecte le produit et trouve les boutiques algériennes correspondantes.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🇩🇿</div>
+          <h3>58 Wilayas & Communes</h3>
+          <p>Formulaires de commande et de géolocalisation adaptés à toutes les wilayas d'Algérie avec calcul de distance et itinéraires.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🌐</div>
+          <h3>Arabe, Français & Anglais</h3>
+          <p>Support natif du mode RTL (droite à gauche) pour la langue arabe (العربية) avec bascule linguistique instantanée.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <h3>Suivi des Commandes</h3>
+          <p>Paiement à la livraison (Cash on Delivery) ou Click & Collect avec suivi en direct en 7 étapes d'avancement.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">💬</div>
+          <h3>Contact Direct Commerçant</h3>
+          <p>Appel téléphonique direct, message WhatsApp pré-rempli et SMS en un clic depuis la fiche vitrine.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="download-banner">
+      <h2>Prêt à installer MAG VITRINE ?</h2>
+      <p>Téléchargez l'application Android directement depuis les builds automatisés GitHub Actions.</p>
+      <a href="https://github.com/mounirath/Mag-vitrine/actions" target="_blank" class="btn btn-light">
+        📥 Accéder aux Téléchargements APK
+      </a>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 <strong>MAG VITRINE</strong> — Projet Android Open Source développé par <a href="https://github.com/mounirath" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">@mounirath</a>.</p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;">Hébergé avec GitHub Pages • Conçu avec Kotlin, Jetpack Compose & Google AI Studio</p>
+  </footer>
+
+</body>
+</html>
