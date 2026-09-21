@@ -1,0 +1,6 @@
+{
+  "name": "MAG VITRINE",
+  "description": "Plateforme de vitrines virtuelles, produits, promotions et commandes avec recherche IA et livraison",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
