@@ -9,6 +9,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    // Prevent theme flickering before paint
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
   <style>
     :root {
       --primary: #047857;
@@ -21,8 +33,38 @@
       --text: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
+      --header-bg: rgba(255, 255, 255, 0.9);
+      --badge-bg: #ecfdf5;
+      --badge-text: #047857;
+      --badge-border: #a7f3d0;
+      --btn-outline-hover-bg: #f1f5f9;
+      --hero-img-border: #ffffff;
+      --theme-btn-bg: #f1f5f9;
+      --theme-btn-border: #cbd5e1;
       --radius: 16px;
       --shadow: 0 10px 25px -5px rgba(4, 120, 87, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="dark"] {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --primary-light: #34d399;
+      --accent: #f59e0b;
+      --accent-light: #fbbf24;
+      --bg: #0b1320;
+      --surface: #141e30;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #1e293b;
+      --header-bg: rgba(15, 23, 42, 0.85);
+      --badge-bg: rgba(16, 185, 129, 0.15);
+      --badge-text: #34d399;
+      --badge-border: rgba(16, 185, 129, 0.3);
+      --btn-outline-hover-bg: #1e293b;
+      --hero-img-border: #1e293b;
+      --theme-btn-bg: #1e293b;
+      --theme-btn-border: #334155;
+      --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
     }
 
     * {
@@ -37,16 +79,18 @@
       color: var(--text);
       line-height: 1.6;
       overflow-x: hidden;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     header {
-      background: rgba(255, 255, 255, 0.9);
+      background: var(--header-bg);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 100;
       padding: 1rem 1.5rem;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
     .nav-container {
@@ -63,6 +107,8 @@
       gap: 0.75rem;
       text-decoration: none;
       color: var(--text);
+      min-width: 0;
+      flex-shrink: 1;
     }
 
     .brand img {
@@ -71,6 +117,11 @@
       border-radius: 12px;
       object-fit: cover;
       box-shadow: 0 4px 10px rgba(4, 120, 87, 0.2);
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      min-width: 0;
     }
 
     .brand-text h1 {
@@ -79,18 +130,21 @@
       color: var(--primary);
       letter-spacing: -0.5px;
       line-height: 1.1;
+      white-space: nowrap;
     }
 
     .brand-text span {
       font-size: 0.75rem;
       color: var(--text-muted);
       font-weight: 600;
+      white-space: nowrap;
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.75rem;
+      flex-shrink: 0;
     }
 
     .btn {
@@ -105,6 +159,8 @@
       text-decoration: none;
       transition: all 0.2s ease;
       cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
     }
 
     .btn-primary {
@@ -125,8 +181,35 @@
     }
 
     .btn-outline:hover {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
+      background: var(--btn-outline-hover-bg);
+      border-color: var(--theme-btn-border);
+    }
+
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      background: var(--theme-btn-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.6rem 0.95rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .theme-toggle-icon {
+      font-size: 1.1rem;
+      line-height: 1;
     }
 
     .hero {
@@ -141,9 +224,9 @@
 
     .badge {
       display: inline-block;
-      background: #ecfdf5;
-      color: var(--primary);
-      border: 1px solid #a7f3d0;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border: 1px solid var(--badge-border);
       padding: 0.35rem 0.85rem;
       border-radius: 9999px;
       font-size: 0.85rem;
@@ -155,7 +238,7 @@
       font-size: 2.75rem;
       font-weight: 800;
       line-height: 1.15;
-      color: #0f172a;
+      color: var(--text);
       margin-bottom: 1.25rem;
       letter-spacing: -1px;
     }
@@ -197,8 +280,9 @@
       width: 100%;
       border-radius: 24px;
       box-shadow: var(--shadow);
-      border: 4px solid #ffffff;
+      border: 4px solid var(--hero-img-border);
       object-fit: cover;
+      transition: border-color 0.3s ease;
     }
 
     .features-section {
@@ -235,20 +319,20 @@
       padding: 2rem;
       border-radius: var(--radius);
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s ease, border-color 0.3s ease;
     }
 
     .feature-card:hover {
       transform: translateY(-4px);
       box-shadow: var(--shadow);
-      border-color: #a7f3d0;
+      border-color: var(--primary-light);
     }
 
     .feature-icon {
       width: 52px;
       height: 52px;
       border-radius: 14px;
-      background: #ecfdf5;
+      background: var(--badge-bg);
       color: var(--primary);
       display: flex;
       align-items: center;
@@ -261,6 +345,7 @@
       font-size: 1.25rem;
       font-weight: 700;
       margin-bottom: 0.5rem;
+      color: var(--text);
     }
 
     .feature-card p {
@@ -306,12 +391,23 @@
     }
 
     footer {
-      background: #ffffff;
+      background: var(--surface);
       border-top: 1px solid var(--border);
       padding: 2.5rem 1.5rem;
       text-align: center;
       color: var(--text-muted);
       font-size: 0.9rem;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+
+    .nav-apk-short {
+      display: none;
+    }
+
+    .nav-github-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     @media (max-width: 900px) {
@@ -329,6 +425,115 @@
       .hero-title {
         font-size: 2.2rem;
       }
+      .nav-actions {
+        gap: 0.5rem;
+      }
+      .theme-toggle-label {
+        display: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 0.65rem 0.85rem;
+      }
+      .brand img {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+      }
+      .brand-text h1 {
+        font-size: 1.05rem;
+      }
+      .brand-text span {
+        display: none;
+      }
+      .nav-actions {
+        gap: 0.4rem;
+      }
+      .theme-toggle-btn {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .nav-github-btn {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .nav-github-text {
+        display: none;
+      }
+      .nav-apk-full {
+        display: none;
+      }
+      .nav-apk-short {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .nav-apk-btn {
+        padding: 0.5rem 0.85rem;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
+      .hero {
+        margin: 2rem auto 3rem auto;
+        padding: 0 1rem;
+      }
+      .hero-title {
+        font-size: 1.85rem;
+      }
+      .hero-arabic {
+        font-size: 1.15rem;
+      }
+      .hero-desc {
+        font-size: 1rem;
+      }
+      .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-buttons .btn {
+        width: 100%;
+      }
+      .download-banner {
+        padding: 2.5rem 1.25rem;
+        margin: 1.5rem 0.75rem 3rem 0.75rem;
+        border-radius: 20px;
+      }
+      .download-banner h2 {
+        font-size: 1.65rem;
+      }
+    }
+
+    @media (max-width: 380px) {
+      header {
+        padding: 0.55rem 0.65rem;
+      }
+      .brand img {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+      }
+      .brand-text h1 {
+        font-size: 0.95rem;
+      }
+      .theme-toggle-btn, .nav-github-btn {
+        width: 34px;
+        height: 34px;
+      }
+      .nav-apk-btn {
+        padding: 0.45rem 0.65rem;
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
@@ -344,8 +549,22 @@
         </div>
       </a>
       <div class="nav-actions">
-        <a href="https://github.com/mounirath/Mag-vitrine" target="_blank" class="btn btn-outline">GitHub Repo</a>
-        <a href="https://github.com/mounirath/Mag-vitrine/actions" target="_blank" class="btn btn-primary">Télécharger l'APK</a>
+        <button id="themeToggle" class="theme-toggle-btn" type="button" aria-label="Basculer entre le mode clair et le mode sombre" title="Basculer le thème">
+          <span id="themeToggleIcon" class="theme-toggle-icon">🌙</span>
+          <span id="themeToggleLabel" class="theme-toggle-label">Sombre</span>
+        </button>
+        <a href="https://github.com/mounirath/Mag-vitrine" target="_blank" class="btn btn-outline nav-github-btn" aria-label="Dépôt GitHub" title="Voir sur GitHub">
+          <span class="nav-github-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+            </svg>
+          </span>
+          <span class="nav-github-text">GitHub</span>
+        </a>
+        <a href="https://github.com/mounirath/Mag-vitrine/actions" target="_blank" class="btn btn-primary nav-apk-btn" title="Télécharger l'application APK">
+          <span class="nav-apk-full">Télécharger l'APK</span>
+          <span class="nav-apk-short">📥 APK</span>
+        </a>
       </div>
     </div>
   </header>
@@ -436,5 +655,47 @@
     <p style="margin-top: 0.5rem; font-size: 0.8rem;">Hébergé avec GitHub Pages • Conçu avec Kotlin, Jetpack Compose & Google AI Studio</p>
   </footer>
 
+  <script>
+    (function() {
+      const toggleBtn = document.getElementById('themeToggle');
+      const toggleIcon = document.getElementById('themeToggleIcon');
+      const toggleLabel = document.getElementById('themeToggleLabel');
+
+      function updateUI(theme) {
+        if (theme === 'dark') {
+          toggleIcon.textContent = '☀️';
+          toggleLabel.textContent = 'Clair';
+          toggleBtn.setAttribute('title', 'Passer en mode clair');
+          toggleBtn.setAttribute('aria-label', 'Activer le mode clair');
+        } else {
+          toggleIcon.textContent = '🌙';
+          toggleLabel.textContent = 'Sombre';
+          toggleBtn.setAttribute('title', 'Passer en mode sombre');
+          toggleBtn.setAttribute('aria-label', 'Activer le mode sombre');
+        }
+      }
+
+      // Initial state sync
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      updateUI(currentTheme);
+
+      // Toggle click handler
+      toggleBtn.addEventListener('click', function() {
+        const activeTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', activeTheme);
+        localStorage.setItem('theme', activeTheme);
+        updateUI(activeTheme);
+      });
+
+      // Listen for system theme changes if no manual preference is saved
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        if (!localStorage.getItem('theme')) {
+          const newTheme = e.matches ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          updateUI(newTheme);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

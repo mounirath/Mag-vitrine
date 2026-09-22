@@ -62,6 +62,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _userRole = MutableStateFlow(UserRole.CUSTOMER)
     val userRole: StateFlow<UserRole> = _userRole.asStateFlow()
 
+    // Admin authentication with authorized email
+    companion object {
+        const val AUTHORIZED_ADMIN_EMAIL = "mounirath@yahoo.fr"
+    }
+
+    private val _authenticatedAdminEmail = MutableStateFlow<String?>(null)
+    val authenticatedAdminEmail: StateFlow<String?> = _authenticatedAdminEmail.asStateFlow()
+
+    val isAdminAuthenticated: Boolean
+        get() = _authenticatedAdminEmail.value?.equals(AUTHORIZED_ADMIN_EMAIL, ignoreCase = true) == true
+
     private val _currentStoreId = MutableStateFlow("store_techzone")
     val currentStoreId: StateFlow<String> = _currentStoreId.asStateFlow()
 
@@ -146,8 +157,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         item.product.model.lowercase().contains(query) ||
                         item.product.searchableText.lowercase().contains(query) ||
                         (item.store?.name?.lowercase()?.contains(query) == true) ||
+                        (item.store?.wilaya?.lowercase()?.contains(query) == true) ||
+                        (item.store?.commune?.lowercase()?.contains(query) == true) ||
                         (item.category?.nameFr?.lowercase()?.contains(query) == true) ||
-                        (item.category?.nameAr?.lowercase()?.contains(query) == true)
+                        (item.category?.nameAr?.lowercase()?.contains(query) == true) ||
+                        (item.category?.nameEn?.lowercase()?.contains(query) == true)
             }
         }
 
@@ -266,10 +280,44 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loginAsAdmin() {
-        setUserRole(UserRole.ADMIN)
+        if (isAdminAuthenticated) {
+            setUserRole(UserRole.ADMIN)
+        } else {
+            navigateTo(Screen.AdminPanel)
+        }
+    }
+
+    /**
+     * Tente de connecter l'administrateur avec l'email autorisé.
+     * Retourne true si l'email correspond à mounirath@yahoo.fr, false sinon.
+     */
+    fun verifyAndLoginAdmin(emailInput: String): Boolean {
+        val trimmed = emailInput.trim()
+        return if (trimmed.equals(AUTHORIZED_ADMIN_EMAIL, ignoreCase = true)) {
+            _authenticatedAdminEmail.value = AUTHORIZED_ADMIN_EMAIL
+            _userRole.value = UserRole.ADMIN
+            navigateTo(Screen.AdminPanel)
+            showSnackbar("Accès Administrateur validé : $AUTHORIZED_ADMIN_EMAIL")
+            true
+        } else {
+            showSnackbar("Accès refusé : email non autorisé pour l'administration")
+            false
+        }
+    }
+
+    fun logoutAdmin() {
+        _authenticatedAdminEmail.value = null
+        _userRole.value = UserRole.CUSTOMER
+        navigateTo(Screen.Home)
+        showSnackbar("Déconnexion de l'espace administrateur effectuée")
     }
 
     fun setUserRole(role: UserRole) {
+        if (role == UserRole.ADMIN && !isAdminAuthenticated) {
+            // Requiert l'authentification par email d'abord
+            navigateTo(Screen.AdminPanel)
+            return
+        }
         _userRole.value = role
         when (role) {
             UserRole.CUSTOMER -> navigateTo(Screen.Home)

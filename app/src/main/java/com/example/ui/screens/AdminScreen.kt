@@ -16,16 +16,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -88,8 +93,127 @@ fun AdminScreen(
         "Vue d'ensemble",
         "Magasins (${allStores.size})",
         "Catégories (${categories.size})",
-        "Modération Annonces"
+        "Modération Annonces",
+        "Base Supabase"
     )
+
+    val authenticatedEmail by viewModel.authenticatedAdminEmail.collectAsState()
+    val isAuthorized = authenticatedEmail?.equals(MainViewModel.AUTHORIZED_ADMIN_EMAIL, ignoreCase = true) == true
+
+    var emailInput by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf(false) }
+
+    if (!isAuthorized) {
+        // Locked state: Requires email authentication
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        modifier = Modifier.size(64.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Default.Security,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "Espace Administrateur Réservé",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "Veuillez saisir l'adresse email autorisée pour déverrouiller la console d'administration.",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    OutlinedTextField(
+                        value = emailInput,
+                        onValueChange = {
+                            emailInput = it
+                            emailError = false
+                        },
+                        label = { Text("Email administrateur") },
+                        placeholder = { Text("mounirath@yahoo.fr") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        isError = emailError,
+                        supportingText = {
+                            if (emailError) {
+                                Text(
+                                    text = "Accès refusé : Seul l'email mounirath@yahoo.fr est autorisé",
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("admin_lock_email_input")
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            val success = viewModel.verifyAndLoginAdmin(emailInput)
+                            if (!success) {
+                                emailError = true
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("admin_lock_submit_btn"),
+                        colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary)
+                    ) {
+                        Text("Déverrouiller l'accès", fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    TextButton(
+                        onClick = { viewModel.navigateTo(Screen.Home) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Retourner à l'accueil")
+                    }
+                }
+            }
+        }
+        return
+    }
 
     LazyColumn(
         modifier = modifier
@@ -105,17 +229,65 @@ fun AdminScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "👑 " + LanguageManager.get("admin_portal", language),
-                        fontSize = 19.sp,
-                        fontWeight = FontWeight.Black,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = "Supervision de la plateforme MAG VITRINE Algérie",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "👑 " + LanguageManager.get("admin_portal", language),
+                                fontSize = 19.sp,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Supervision de la plateforme MAG VITRINE Algérie",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        // Déconnexion Admin
+                        IconButton(
+                            onClick = { viewModel.logoutAdmin() },
+                            modifier = Modifier.testTag("btn_logout_admin")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ExitToApp,
+                                contentDescription = "Déconnexion Admin",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Authenticated admin email badge
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Connecté en tant que : ${authenticatedEmail ?: MainViewModel.AUTHORIZED_ADMIN_EMAIL}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
@@ -333,6 +505,114 @@ fun AdminScreen(
                                         Icon(imageVector = Icons.Default.Delete, contentDescription = "Supprimer annonce", tint = PromoRed, modifier = Modifier.size(16.dp))
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+            4 -> {
+                // Base de données Supabase
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Surface(
+                                        color = EmeraldPrimary.copy(alpha = 0.15f),
+                                        shape = CircleShape,
+                                        modifier = Modifier.size(40.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.Storage,
+                                                contentDescription = null,
+                                                tint = EmeraldPrimary,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            text = "Base de Données Supabase (PostgreSQL)",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp
+                                        )
+                                        Text(
+                                            text = "Schéma complet généré dans 'supabase_schema.sql'",
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(14.dp))
+                                Divider()
+                                Spacer(modifier = Modifier.height(14.dp))
+
+                                Text(
+                                    text = "Tables configurées pour MAG VITRINE Algérie :",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 13.sp
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "• public.profiles (Auth & Rôles : customer, store, admin)\n• public.stores (Vitrines commerçants, Wilayas, Coordonnées)\n• public.categories (Catégories trilingues FR, AR, EN)\n• public.products (Produits, prix en DA, promotions, statuts)\n• public.product_images (Jusqu'à 3 images par produit)\n• public.orders & public.order_items (Suivi commandes 58 Wilayas)\n• public.delivery_zones (Frais et délais par wilaya)",
+                                    fontSize = 12.sp,
+                                    lineHeight = 18.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Surface(
+                                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp)) {
+                                        Text(
+                                            text = "Sécurité RLS & Droits Administrateur :",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "La politique RLS 'is_admin()' réserve les droits complets de gestion à : mounirath@yahoo.fr",
+                                            fontSize = 11.sp,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = "Instructions d'activation Supabase :",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "1. Connectez-vous sur https://supabase.com et ouvrez votre projet.\n2. Allez dans 'SQL Editor' -> 'New query'.\n3. Copiez et collez le contenu du fichier 'supabase_schema.sql' situé à la racine du projet.\n4. Cliquez sur 'Run' pour créer toutes les tables, index de recherche, et règles de sécurité RLS.",
+                                    fontSize = 12.sp,
+                                    lineHeight = 18.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }

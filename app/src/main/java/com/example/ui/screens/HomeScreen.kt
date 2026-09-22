@@ -31,13 +31,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -49,10 +53,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -121,6 +128,10 @@ fun HomeScreen(
         allProducts.filter { it.product.isPromotion }
     }
 
+    var showHiddenAdminAuthDialog by remember { mutableStateOf(false) }
+    var adminEmailInput by remember { mutableStateOf("") }
+    var adminEmailError by remember { mutableStateOf(false) }
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -143,7 +154,18 @@ fun HomeScreen(
                         value = searchQuery,
                         onValueChange = {
                             viewModel.searchQuery.value = it
-                            if (it.isNotBlank()) {
+                            val trimmed = it.trim()
+                            if (trimmed.equals("admin", ignoreCase = true) ||
+                                trimmed.equals("mounirath@yahoo.fr", ignoreCase = true) ||
+                                trimmed.equals("mounirath", ignoreCase = true) ||
+                                trimmed.equals("#admin", ignoreCase = true) ||
+                                trimmed.equals("*#admin#*", ignoreCase = true)
+                            ) {
+                                adminEmailInput = if (trimmed.contains("@")) trimmed else "mounirath@yahoo.fr"
+                                adminEmailError = false
+                                showHiddenAdminAuthDialog = true
+                                viewModel.searchQuery.value = ""
+                            } else if (it.isNotBlank()) {
                                 viewModel.navigateTo(Screen.Catalog())
                             }
                         },
@@ -560,6 +582,142 @@ fun HomeScreen(
                 }
             }
         }
+
+        // Discreet Footer with hidden admin trigger
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 28.dp, bottom = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "MAG VITRINE • Vitrines Virtuelles d'Algérie",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            adminEmailInput = "mounirath@yahoo.fr"
+                            adminEmailError = false
+                            showHiddenAdminAuthDialog = true
+                        }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .testTag("btn_hidden_admin_trigger")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Accès Gestion",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Accès Gestion",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                    )
+                }
+            }
+        }
+    }
+
+    // Hidden Admin Access Dialog
+    if (showHiddenAdminAuthDialog) {
+        AlertDialog(
+            onDismissRequest = { showHiddenAdminAuthDialog = false },
+            icon = {
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = CircleShape,
+                    modifier = Modifier.size(46.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Security,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                }
+            },
+            title = {
+                Text(
+                    text = "Accès Gestion Administrateur",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Cet espace réservé nécessite une autorisation préalable par email vérifié.",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = adminEmailInput,
+                        onValueChange = {
+                            adminEmailInput = it
+                            adminEmailError = false
+                        },
+                        label = { Text("Email administrateur") },
+                        placeholder = { Text("nom@domaine.com") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        isError = adminEmailError,
+                        supportingText = {
+                            if (adminEmailError) {
+                                Text(
+                                    text = "Accès refusé : Seul l'email mounirath@yahoo.fr est autorisé",
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontSize = 11.sp
+                                )
+                            } else {
+                                Text(
+                                    text = "Email autorisé requis pour ouvrir la console d'administration",
+                                    fontSize = 10.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("input_admin_email_dialog")
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val success = viewModel.verifyAndLoginAdmin(adminEmailInput)
+                        if (success) {
+                            showHiddenAdminAuthDialog = false
+                        } else {
+                            adminEmailError = true
+                        }
+                    },
+                    modifier = Modifier.testTag("btn_confirm_admin_auth")
+                ) {
+                    Text("Valider l'accès")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showHiddenAdminAuthDialog = false }) {
+                    Text("Annuler")
+                }
+            }
+        )
     }
 }
 

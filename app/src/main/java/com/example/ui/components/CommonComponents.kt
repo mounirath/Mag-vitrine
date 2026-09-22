@@ -251,13 +251,15 @@ fun AppHeader(
                                     showRoleMenu = false
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text("👑 Espace Administrateur") },
-                                onClick = {
-                                    onRoleSelected(UserRole.ADMIN)
-                                    showRoleMenu = false
-                                }
-                            )
+                            if (userRole == UserRole.ADMIN) {
+                                DropdownMenuItem(
+                                    text = { Text("👑 Espace Administrateur") },
+                                    onClick = {
+                                        onRoleSelected(UserRole.ADMIN)
+                                        showRoleMenu = false
+                                    }
+                                )
+                            }
                         }
                     }
 
