@@ -1,0 +1,21 @@
+{
+  "name": "MAG VITRINE Algérie",
+  "short_name": "MAG VITRINE",
+  "description": "Vitrines virtuelles, e-commerce et commerce local à travers les 58 Wilayas d'Algérie",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#047857",
+  "icons": [
+    {
+      "src": "/assets/ic_mag_vitrine_icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/assets/ic_mag_vitrine_icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
