@@ -10,13 +10,23 @@ export function CartDrawer({
   onRemoveItem,
   onClearCart,
   onCreateOrder,
+  currentUser,
   t
 }) {
-  const [customerName, setCustomerName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [wilaya, setWilaya] = useState('Alger');
-  const [address, setAddress] = useState('');
+  const [customerName, setCustomerName] = useState(() => currentUser?.name || '');
+  const [phone, setPhone] = useState(() => currentUser?.phone || '');
+  const [wilaya, setWilaya] = useState(() => currentUser?.wilaya || 'Alger');
+  const [address, setAddress] = useState(() => currentUser?.address || '');
   const [orderPlaced, setOrderPlaced] = useState(null);
+
+  React.useEffect(() => {
+    if (currentUser) {
+      if (currentUser.name) setCustomerName(currentUser.name);
+      if (currentUser.phone) setPhone(currentUser.phone);
+      if (currentUser.wilaya) setWilaya(currentUser.wilaya);
+      if (currentUser.address) setAddress(currentUser.address);
+    }
+  }, [currentUser]);
 
   if (!isOpen) return null;
 

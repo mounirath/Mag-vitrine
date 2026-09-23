@@ -1,7 +1,7 @@
 import React from 'react';
-import { Sparkles, ShieldCheck, MapPin, Truck, Store } from 'lucide-react';
+import { Sparkles, ShieldCheck, MapPin, Truck, Store, UserPlus } from 'lucide-react';
 
-export function HeroBanner({ lang, onExploreStores, onExploreCatalog, t }) {
+export function HeroBanner({ lang, onExploreStores, onExploreCatalog, onOpenStoreRegistration, t }) {
   const isAr = lang === 'ar';
 
   return (
@@ -38,7 +38,7 @@ export function HeroBanner({ lang, onExploreStores, onExploreCatalog, t }) {
               style={{ width: 'auto', padding: '0.75rem 1.4rem', borderRadius: '9999px', fontSize: '0.95rem' }}
             >
               <Store size={18} />
-              {t.navStores}
+              <span>{t.navStores}</span>
             </button>
             <button
               onClick={onExploreCatalog}
@@ -46,7 +46,15 @@ export function HeroBanner({ lang, onExploreStores, onExploreCatalog, t }) {
               style={{ width: 'auto', padding: '0.75rem 1.4rem', borderRadius: '9999px', fontSize: '0.95rem' }}
             >
               <Truck size={18} />
-              {t.navCatalog}
+              <span>{t.navCatalog}</span>
+            </button>
+            <button
+              onClick={onOpenStoreRegistration}
+              className="btn-store-call"
+              style={{ width: 'auto', padding: '0.75rem 1.4rem', borderRadius: '9999px', fontSize: '0.95rem', background: 'var(--badge-bg)', color: 'var(--badge-text)', borderColor: 'var(--badge-border)', fontWeight: '800' }}
+            >
+              <UserPlus size={18} />
+              <span>{isAr ? 'فتح فترينة مجاناً (50 إعلان)' : 'Ouvrir ma Vitrine (Gratuit)'}</span>
             </button>
           </div>
         </div>

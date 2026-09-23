@@ -7,8 +7,38 @@ const STORAGE_KEYS = {
   CART: 'mag_vitrine_cart',
   ORDERS: 'mag_vitrine_orders',
   LANG: 'mag_vitrine_lang',
-  THEME: 'mag_vitrine_theme'
+  THEME: 'mag_vitrine_theme',
+  USERS: 'mag_vitrine_users',
+  CURRENT_USER: 'mag_vitrine_current_user'
 };
+
+const INITIAL_USERS = [
+  {
+    id: 'user_customer_1',
+    email: 'client@gmail.com',
+    role: 'customer',
+    name: 'Karim Larbi',
+    phone: '0555443322',
+    wilaya: 'Alger',
+    address: 'Bab Ezzouar, Alger'
+  },
+  {
+    id: 'user_store_1',
+    email: 'contact@techzone.dz',
+    role: 'store',
+    name: 'Mohamed Benali',
+    phone: '+213 661 22 33 44',
+    storeId: 'store_techzone'
+  },
+  {
+    id: 'user_store_2',
+    email: 'contact@elegance.dz',
+    role: 'store',
+    name: 'Amina Khelil',
+    phone: '+213 770 99 88 77',
+    storeId: 'store_elegance'
+  }
+];
 
 export const TRANSLATIONS = {
   fr: {
@@ -47,7 +77,15 @@ export const TRANSLATIONS = {
     cameraSearchSubtitle: 'Téléchargez la photo d un article : l IA identifie le produit et trouve les boutiques correspondantes',
     dropPhoto: 'Prenez une photo ou importez une image',
     analyzingImage: 'Analyse de l image par l IA...',
-    aiResultsFound: 'Produits correspondants détectés'
+    aiResultsFound: 'Produits correspondants détectés',
+    authLogin: 'Se Connecter',
+    authRegisterClient: 'Créer un Compte Client',
+    authRegisterStore: 'Créer une Vitrine Magasin',
+    authLogout: 'Déconnexion',
+    authMyAccount: 'Mon Compte',
+    authClientBadge: 'Client',
+    authStoreBadge: 'Boutique',
+    authOpenStoreCta: 'Vous êtes commerçant ? Créez votre vitrine gratuitement'
   },
   ar: {
     appTitle: 'ماغ فيترين',
@@ -85,7 +123,15 @@ export const TRANSLATIONS = {
     cameraSearchSubtitle: 'التقط صورة لمنتج أو ملابس : يقوم الذكاء الاصطناعي بالتعرف عليه وإيجاد المتاجر الموفرة له',
     dropPhoto: 'التقط صورة أو اختر صورة من جهازك',
     analyzingImage: 'جاري تحليل الصورة بالذكاء الاصطناعي...',
-    aiResultsFound: 'المنتجات المطابقة المكتشفة'
+    aiResultsFound: 'المنتجات المطابقة المكتشفة',
+    authLogin: 'تسجيل الدخول',
+    authRegisterClient: 'إنشاء حساب زبون',
+    authRegisterStore: 'إنشاء حساب متجر وفترينة',
+    authLogout: 'تسجيل الخروج',
+    authMyAccount: 'حسابي',
+    authClientBadge: 'زبون',
+    authStoreBadge: 'متجر معتمد',
+    authOpenStoreCta: 'هل أنت تاجر؟ افتح فترينتك التجارية مجاناً الآن'
   },
   en: {
     appTitle: 'MAG VITRINE',
@@ -123,7 +169,15 @@ export const TRANSLATIONS = {
     cameraSearchSubtitle: 'Upload a product photo: AI identifies the item and matches local Algerian stores',
     dropPhoto: 'Take a photo or upload an image',
     analyzingImage: 'Analyzing photo with AI...',
-    aiResultsFound: 'Matching products found'
+    aiResultsFound: 'Matching products found',
+    authLogin: 'Log In',
+    authRegisterClient: 'Create Customer Account',
+    authRegisterStore: 'Open Store Showcase',
+    authLogout: 'Log Out',
+    authMyAccount: 'My Account',
+    authClientBadge: 'Customer',
+    authStoreBadge: 'Store',
+    authOpenStoreCta: 'Are you a merchant? Open your vitrine for free'
   }
 };
 
@@ -159,6 +213,14 @@ export function useAppStore() {
       }
     ];
   });
+  const [users, setUsers] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.USERS);
+    return saved ? JSON.parse(saved) : INITIAL_USERS;
+  });
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+    return saved ? JSON.parse(saved) : null;
+  });
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.LANG, lang);
@@ -186,6 +248,18 @@ export function useAppStore() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
   }, [orders]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+  }, [users]);
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+    }
+  }, [currentUser]);
 
   const addToCart = (product, quantity = 1) => {
     setCart(prev => {
@@ -238,6 +312,88 @@ export function useAppStore() {
     return newOrder;
   };
 
+  // Auth Functions
+  const registerCustomer = (data) => {
+    const newUser = {
+      id: `user_customer_${Date.now()}`,
+      email: data.email,
+      role: 'customer',
+      name: data.name,
+      phone: data.phone,
+      wilaya: data.wilaya || 'Alger',
+      address: data.address || ''
+    };
+    setUsers(prev => [...prev, newUser]);
+    setCurrentUser(newUser);
+    return newUser;
+  };
+
+  const registerStore = (data) => {
+    const storeId = `store_${Date.now()}`;
+    const newStore = {
+      id: storeId,
+      name: data.storeName,
+      slug: data.storeName.toLowerCase().replace(/\s+/g, '-'),
+      logo: data.logo || 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=300',
+      banner: data.banner || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=900',
+      description: data.description || 'Vitrine commerciale vérifiée en Algérie.',
+      managerName: data.managerName,
+      phone: data.phone,
+      whatsapp: data.whatsapp ? data.whatsapp.replace(/\D/g, '') : data.phone.replace(/\D/g, ''),
+      address: data.address,
+      wilaya: data.wilaya,
+      commune: data.commune || data.wilaya,
+      rating: 5.0,
+      reviewsCount: 1,
+      openingHours: data.openingHours || 'Sam - Jeu : 09h00 - 19h00',
+      deliveryEnabled: true,
+      freeDeliveryMinimum: parseFloat(data.freeDeliveryMinimum) || 8000,
+      defaultDeliveryFee: parseFloat(data.defaultDeliveryFee) || 400,
+      estimatedDeliveryTime: '24h - 48h',
+      quotaUsed: 0,
+      quotaMax: 50
+    };
+
+    const newUser = {
+      id: `user_store_${Date.now()}`,
+      email: data.email,
+      role: 'store',
+      name: data.managerName,
+      phone: data.phone,
+      storeId: storeId
+    };
+
+    setStores(prev => [newStore, ...prev]);
+    setUsers(prev => [...prev, newUser]);
+    setCurrentUser(newUser);
+    return { user: newUser, store: newStore };
+  };
+
+  const login = (email) => {
+    const found = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (found) {
+      setCurrentUser(found);
+      return { success: true, user: found };
+    }
+    // Create quick session if not found
+    const quickUser = {
+      id: `user_${Date.now()}`,
+      email: email,
+      role: 'customer',
+      name: email.split('@')[0],
+      phone: '0550000000',
+      wilaya: 'Alger',
+      address: ''
+    };
+    setUsers(prev => [...prev, quickUser]);
+    setCurrentUser(quickUser);
+    return { success: true, user: quickUser };
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+  };
+
   const t = TRANSLATIONS[lang] || TRANSLATIONS.fr;
 
   return {
@@ -249,6 +405,12 @@ export function useAppStore() {
     products,
     cart,
     orders,
+    users,
+    currentUser,
+    registerCustomer,
+    registerStore,
+    login,
+    logout,
     addToCart,
     removeFromCart,
     updateQuantity,
