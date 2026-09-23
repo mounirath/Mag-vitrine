@@ -26,6 +26,7 @@ export function Header({
   t
 }) {
   const isAr = lang === 'ar';
+  const isStoreUser = Boolean(currentUser && (currentUser.role === 'store' || currentUser.storeId));
   const [isAuthDropdownOpen, setIsAuthDropdownOpen] = useState(false);
   const authContainerRef = useRef(null);
 
@@ -392,26 +393,47 @@ export function Header({
             )}
           </div>
 
-          {/* Direct 1-Click Create Account Button when not logged in */}
+          {/* Direct 1-Click Login & Create Account Buttons when not logged in */}
           {!currentUser && (
-            <button
-              className="quick-pill-btn"
-              onClick={() => handleOpenAuth('register_client')}
-              style={{
-                background: 'linear-gradient(135deg, #0284c7, #0369a1)',
-                color: '#ffffff',
-                border: 'none',
-                boxShadow: '0 2px 8px rgba(2, 132, 199, 0.35)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.45rem 0.85rem'
-              }}
-              title={isAr ? 'إنشاء حساب جديد فوراً' : 'Créer un compte client'}
-            >
-              <UserPlus size={15} />
-              <span>{isAr ? 'إنشاء حساب' : 'Inscription'}</span>
-            </button>
+            <>
+              <button
+                className="quick-pill-btn"
+                onClick={() => handleOpenAuth('login')}
+                style={{
+                  background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.45rem 0.85rem'
+                }}
+                title={isAr ? 'دخول لحساب' : 'Connexion'}
+              >
+                <LogIn size={15} color="#38bdf8" />
+                <span>{isAr ? 'دخول لحساب' : 'Connexion'}</span>
+              </button>
+
+              <button
+                className="quick-pill-btn"
+                onClick={() => handleOpenAuth('register_client')}
+                style={{
+                  background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                  color: '#ffffff',
+                  border: 'none',
+                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.35)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.45rem 0.85rem'
+                }}
+                title={isAr ? 'إنشاء حساب جديد فوراً' : 'Créer un compte client'}
+              >
+                <UserPlus size={15} />
+                <span>{isAr ? 'إنشاء حساب' : 'Inscription'}</span>
+              </button>
+            </>
           )}
 
           {/* Quick pills */}
@@ -422,13 +444,23 @@ export function Header({
             <span>🛋️ Furniture</span>
           </button>
 
-          <button
-            className="quick-pill-btn action"
-            onClick={onOpenPublish}
-          >
-            <Plus size={15} />
-            <span>Publier</span>
-          </button>
+          {/* Quick pill: Publier (Visible ONLY for Store / Merchant) */}
+          {isStoreUser && (
+            <button
+              className="quick-pill-btn action"
+              onClick={onOpenPublish}
+              style={{
+                background: 'linear-gradient(135deg, #d97706, #b45309)',
+                color: '#ffffff',
+                border: 'none',
+                boxShadow: '0 2px 6px rgba(217, 119, 6, 0.3)'
+              }}
+              title={isAr ? 'نشر إعلان جديد للمتجر' : 'Publier une annonce magasin'}
+            >
+              <Plus size={15} />
+              <span>{isAr ? 'نشر إعلان' : 'Publier'}</span>
+            </button>
+          )}
 
           <button
             className="quick-pill-btn action"

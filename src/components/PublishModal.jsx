@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Upload, Plus, Camera, Video, DollarSign, MapPin, CheckCircle2, ShieldCheck, Sparkles, Store, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Upload, Plus, Camera, Video, DollarSign, MapPin, CheckCircle2, ShieldCheck, Sparkles, Store, AlertCircle, LogIn } from 'lucide-react';
 import { CATEGORIES, WILAYAS } from '../data/initialData';
 
 export function PublishModal({
@@ -26,7 +26,7 @@ export function PublishModal({
   if (!isOpen) return null;
   const isAr = lang === 'ar';
 
-  const isStoreUser = currentUser && currentUser.role === 'store';
+  const isStoreUser = Boolean(currentUser && (currentUser.role === 'store' || currentUser.storeId));
   const effectiveStore = stores.find(s => s.id === selectedStoreId) || stores[0];
 
   const handleSubmit = (e) => {
@@ -86,7 +86,77 @@ export function PublishModal({
       </div>
 
       <div style={{ padding: '1.25rem', paddingBottom: '6rem' }}>
-        {published ? (
+        {!isStoreUser ? (
+          <div style={{ textAlign: 'center', padding: '2.5rem 1rem', background: 'var(--surface)', borderRadius: '20px', border: '1px solid var(--border-light)', boxShadow: 'var(--shadow-card)' }}>
+            <div style={{ width: '68px', height: '68px', borderRadius: '50%', background: 'rgba(217, 119, 6, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+              <Store size={34} color="#d97706" />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '800', marginBottom: '0.6rem', color: 'var(--text-main)' }}>
+              {isAr ? 'نشر الإعلانات متاح للتجار والمحلات فقط' : 'Publication réservée aux Commerçants'}
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', maxWidth: '400px', margin: '0 auto 1.5rem', lineHeight: 1.5 }}>
+              {isAr
+                ? 'في منصة MAG VITRINE، تقتصر ميزة نشر الإعلانات حصرياً على أصحاب المتاجر والمحلات التجارية المعتمدة في الجزائر لضمان سلامة التعاملات وتوفير شارة التوثيق بالفيديو.'
+                : 'Sur MAG VITRINE, la publication d\'annonces est réservée exclusivement aux commerçants et vitrines vérifiées en Algérie. Connectez-vous avec votre compte magasin ou ouvrez votre vitrine gratuitement.'}
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxWidth: '340px', margin: '0 auto' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenAuth && onOpenAuth('login_store');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.85rem',
+                  background: 'var(--navy-header)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '800',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.2)'
+                }}
+              >
+                <LogIn size={17} />
+                <span>{isAr ? 'تسجيل دخول تاجر / متجر' : 'Connexion Espace Commerçant'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenAuth && onOpenAuth('register_store');
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.85rem',
+                  background: 'linear-gradient(135deg, #d97706, #b45309)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontWeight: '800',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 4px 12px rgba(217, 119, 6, 0.25)'
+                }}
+              >
+                <Store size={17} />
+                <span>{isAr ? 'فتح فترينة متجر جديدة (50 إعلان مجاناً)' : 'Ouvrir ma Vitrine (50 annonces)'}</span>
+              </button>
+            </div>
+          </div>
+        ) : published ? (
           <div style={{ textAlign: 'center', padding: '3rem 1rem' }}>
             <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
               <CheckCircle2 size={36} color="#16a34a" />

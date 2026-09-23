@@ -1,11 +1,14 @@
 import React from 'react';
 import { Home, Search, PlusCircle, MessageSquare, User, MapPin } from 'lucide-react';
 
-export function BottomNavBar({ activeTab, setActiveTab, unreadMessages = 1, lang, t }) {
+export function BottomNavBar({ activeTab, setActiveTab, unreadMessages = 1, isStoreUser = false, lang, t }) {
   const isAr = lang === 'ar';
 
   return (
-    <nav className="bottom-nav-bar">
+    <nav
+      className="bottom-nav-bar"
+      style={{ gridTemplateColumns: isStoreUser ? 'repeat(5, 1fr)' : 'repeat(4, 1fr)' }}
+    >
       {/* 1. Home */}
       <button
         className={`bottom-nav-item ${activeTab === 'home' ? 'active' : ''}`}
@@ -26,15 +29,17 @@ export function BottomNavBar({ activeTab, setActiveTab, unreadMessages = 1, lang
         <span>{isAr ? 'بحث وموقع' : 'Recherche'}</span>
       </button>
 
-      {/* 3. Publier */}
-      <button
-        className={`bottom-nav-item ${activeTab === 'publish' ? 'active' : ''}`}
-        onClick={() => setActiveTab('publish')}
-        aria-label="Publier"
-      >
-        <PlusCircle size={24} color={activeTab === 'publish' ? 'var(--orange-action)' : 'currentColor'} />
-        <span>{isAr ? 'نشر' : 'Publier'}</span>
-      </button>
+      {/* 3. Publier (Visible ONLY for Store / Merchant) */}
+      {isStoreUser && (
+        <button
+          className={`bottom-nav-item ${activeTab === 'publish' ? 'active' : ''}`}
+          onClick={() => setActiveTab('publish')}
+          aria-label="Publier"
+        >
+          <PlusCircle size={24} color={activeTab === 'publish' ? 'var(--orange-action)' : 'currentColor'} />
+          <span>{isAr ? 'نشر إعلان' : 'Publier'}</span>
+        </button>
+      )}
 
       {/* 4. Messages */}
       <button

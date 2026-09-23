@@ -11,6 +11,7 @@ export function ListingInsightModal({
   onAddToCart,
   onOpenNegotiation,
   onOpenTrustPortal,
+  onOpenStoreReviews,
   lang,
   t
 }) {
@@ -180,12 +181,38 @@ export function ListingInsightModal({
               style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', border: '2px solid #6366f1' }}
             />
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.92rem', fontWeight: '800' }}>{store ? store.name : (isAr ? 'محل تجاري معتمد' : 'Boutique Agréée')}</span>
                 <ShieldCheck size={16} color="#6366f1" />
               </div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                {isAr ? `محل مرخّص وموثّق بالفيديو • ${product.sellerRating || 4.9} ★` : `Boutique vérifiée par vidéo • ${product.sellerRating || 4.8} ★`}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.2rem' }}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onOpenStoreReviews && store) onOpenStoreReviews(store);
+                  }}
+                  style={{
+                    background: '#fef3c7',
+                    border: '1px solid #fde68a',
+                    borderRadius: '6px',
+                    padding: '0.1rem 0.4rem',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    color: '#92400e',
+                    fontSize: '0.75rem',
+                    fontWeight: '800',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Star size={12} fill="#f59e0b" color="#f59e0b" />
+                  <span>{store?.rating || 4.8} / 5</span>
+                  <span style={{ textDecoration: 'underline', opacity: 0.8 }}>({store?.reviewsCount || 42} تقييم)</span>
+                </button>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  {isAr ? 'فترينة موثقة' : 'Vérifié vidéo'}
+                </span>
               </div>
               {store?.address && (
                 <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.15rem' }}>

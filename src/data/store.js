@@ -9,8 +9,117 @@ const STORAGE_KEYS = {
   LANG: 'mag_vitrine_lang',
   THEME: 'mag_vitrine_theme',
   USERS: 'mag_vitrine_users',
-  CURRENT_USER: 'mag_vitrine_current_user'
+  CURRENT_USER: 'mag_vitrine_current_user',
+  STORE_REVIEWS: 'mag_vitrine_store_reviews',
+  CUSTOMER_RATINGS: 'mag_vitrine_customer_ratings'
 };
+
+const INITIAL_STORE_REVIEWS = [
+  {
+    id: 's_rev_1',
+    storeId: 'store_techzone',
+    customerName: 'Karim Larbi',
+    customerPhone: '0555443322',
+    rating: 5,
+    criteria: { deliverySpeed: 5, conformity: 5, communication: 5 },
+    comment: 'تجربة تسوق ممتازة جداً! الهاتف أصلي 100% ومطابق تماماً لفيديو الفحص. التوصيل لباب المنزل في باب الزوار كان سريعاً ومحترفاً.',
+    commentFr: 'Excellente expérience ! Produit 100% conforme à la vidéo. Vendeur très réactif et livraison express.',
+    date: '2026-09-22',
+    verifiedOrder: true,
+    orderId: 'DZ-8921'
+  },
+  {
+    id: 's_rev_2',
+    storeId: 'store_techzone',
+    customerName: 'Sofiane Mebarki',
+    customerPhone: '0661998877',
+    rating: 5,
+    criteria: { deliverySpeed: 5, conformity: 5, communication: 4 },
+    comment: 'متجر موثوق في الجزائر العاصمة، تغليف محكم للسلعة وضمان حقيقي، أنصح بالتعامل معهم.',
+    commentFr: 'Boutique fiable, emballage soigné et vraie garantie.',
+    date: '2026-09-18',
+    verifiedOrder: true
+  },
+  {
+    id: 's_rev_3',
+    storeId: 'store_maison',
+    customerName: 'Amina K.',
+    customerPhone: '0770112233',
+    rating: 5,
+    criteria: { deliverySpeed: 4, conformity: 5, communication: 5 },
+    comment: 'الأريكة فائقة الجودة والقماش فاخر ومطابق للصور والفيديو، شكراً للأخ ياسين على حسن الاستقبال.',
+    commentFr: 'Canapé magnifique, tissu de haute qualité et super accueil.',
+    date: '2026-09-15',
+    verifiedOrder: true
+  },
+  {
+    id: 's_rev_4',
+    storeId: 'store_elegance',
+    customerName: 'Leila Dahmani',
+    customerPhone: '0552445566',
+    rating: 4,
+    criteria: { deliverySpeed: 4, conformity: 5, communication: 4 },
+    comment: 'المعطف رائع والمقاس مضبوط، توصيل في 48 ساعة إلى وهران.',
+    commentFr: 'Très beau manteau, taille parfaite et livraison en 48h à Oran.',
+    date: '2026-09-12',
+    verifiedOrder: true
+  }
+];
+
+const INITIAL_CUSTOMER_RATINGS = [
+  {
+    id: 'c_rat_1',
+    customerPhone: '0555443322',
+    customerName: 'Karim Larbi',
+    storeId: 'store_techzone',
+    storeName: 'Tech Zone Alger',
+    parcelReceived: true, // تم استلام الطرد بنجاح والدفع
+    stars: 5,
+    reason: 'استلم الطرد فوراً وكان في الموعد ومحترماً جداً',
+    reasonFr: 'A récupéré le colis sans délai, très courtois et sérieux.',
+    date: '2026-09-22',
+    orderId: 'DZ-8921'
+  },
+  {
+    id: 'c_rat_2',
+    customerPhone: '0555443322',
+    customerName: 'Karim Larbi',
+    storeId: 'store_maison',
+    storeName: 'Maison & Mobilier Confort',
+    parcelReceived: true,
+    stars: 5,
+    reason: 'تواصل ممتاز ودفع كاش عند الاستلام دون أي تماطل',
+    reasonFr: 'Excellente communication, paiement cash à la livraison.',
+    date: '2026-09-05',
+    orderId: 'DZ-7412'
+  },
+  {
+    id: 'c_rat_3',
+    customerPhone: '0551223344',
+    customerName: 'Samir Bouzid',
+    storeId: 'store_auto',
+    storeName: 'Auto & Rechanges Express',
+    parcelReceived: true,
+    stars: 5,
+    reason: 'زبون جاد، استلم قطعة الغيار في وهران خلال ساعتين من وصول الموزع',
+    reasonFr: 'Client sérieux, colis récupéré dès l arrivée du livreur.',
+    date: '2026-09-14',
+    orderId: 'DZ-6109'
+  },
+  {
+    id: 'c_rat_4',
+    customerPhone: '0663112233',
+    customerName: 'Farid Mechri',
+    storeId: 'store_techzone',
+    storeName: 'Tech Zone Alger',
+    parcelReceived: false, // عدم استلام / رفض الطرد
+    stars: 1,
+    reason: 'الهاتف مغلق طيلة يومين ورفض الرد على موزع ياليدين بعد وصول الطرد إلى سطيف',
+    reasonFr: 'Téléphone éteint pendant 2 jours et refus de répondre au livreur.',
+    date: '2026-09-10',
+    orderId: 'DZ-5210'
+  }
+];
 
 const INITIAL_USERS = [
   {
@@ -206,12 +315,72 @@ export function useAppStore() {
         wilaya: 'Alger',
         commune: 'Bab Ezzouar',
         storeName: 'Tech Zone Alger',
+        storeId: 'store_techzone',
         items: [{ name: 'Samsung Galaxy S24 Ultra 256GB', qty: 1, price: 185000 }],
         totalAmount: 185000,
-        statusStep: 4, // 1 to 7
+        statusStep: 7, // Livrée & Encaissée
+        parcelReceived: true, // استلم الطرد بنجاح
+        customerRated: true, // التاجر قيّم جدية الزبون
+        isStoreRated: true, // الزبون قيّم المتجر
         date: '2026-09-22'
+      },
+      {
+        id: 'DZ-9140',
+        customerName: 'Samir Bouzid',
+        phone: '0551223344',
+        wilaya: 'Oran',
+        commune: 'Es Sénia',
+        storeName: 'Tech Zone Alger',
+        storeId: 'store_techzone',
+        items: [{ name: 'Casque Audio Sans Fil Pro ANC', qty: 1, price: 14500 }],
+        totalAmount: 14500,
+        statusStep: 7,
+        parcelReceived: true,
+        customerRated: false, // في انتظار تقييم التاجر لجدية الزبون
+        isStoreRated: false,
+        date: '2026-09-23'
+      },
+      {
+        id: 'DZ-8430',
+        customerName: 'Amel Touati',
+        phone: '0772334455',
+        wilaya: 'Constantine',
+        commune: 'Ali Mendjeli',
+        storeName: 'Tech Zone Alger',
+        storeId: 'store_techzone',
+        items: [{ name: 'Montre Connectée Fitness Watch 5', qty: 1, price: 9200 }],
+        totalAmount: 9200,
+        statusStep: 5, // En cours d acheminement
+        parcelReceived: null,
+        customerRated: false,
+        isStoreRated: false,
+        date: '2026-09-23'
+      },
+      {
+        id: 'DZ-5210',
+        customerName: 'Farid Mechri',
+        phone: '0663112233',
+        wilaya: 'Sétif',
+        commune: 'El Eulma',
+        storeName: 'Tech Zone Alger',
+        storeId: 'store_techzone',
+        items: [{ name: 'Tablette Graphique Ultra-Fine', qty: 1, price: 21000 }],
+        totalAmount: 21000,
+        statusStep: 7,
+        parcelReceived: false, // عدم استلام / رفض الطرد
+        customerRated: true,
+        isStoreRated: false,
+        date: '2026-09-10'
       }
     ];
+  });
+  const [storeReviews, setStoreReviews] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.STORE_REVIEWS);
+    return saved ? JSON.parse(saved) : INITIAL_STORE_REVIEWS;
+  });
+  const [customerRatings, setCustomerRatings] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.CUSTOMER_RATINGS);
+    return saved ? JSON.parse(saved) : INITIAL_CUSTOMER_RATINGS;
   });
   const [users, setUsers] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.USERS);
@@ -248,6 +417,14 @@ export function useAppStore() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
   }, [orders]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.STORE_REVIEWS, JSON.stringify(storeReviews));
+  }, [storeReviews]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.CUSTOMER_RATINGS, JSON.stringify(customerRatings));
+  }, [customerRatings]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
@@ -394,6 +571,169 @@ export function useAppStore() {
     setCurrentUser(null);
   };
 
+  // 1. Rate Merchant / Store Experience (1 to 5 Stars + Criteria)
+  const rateStore = ({ storeId, rating, comment, criteria, customerName, customerPhone, orderId }) => {
+    const numRating = Math.max(1, Math.min(5, Number(rating) || 5));
+    const newReview = {
+      id: `s_rev_${Date.now()}`,
+      storeId,
+      customerName: customerName || currentUser?.name || 'Client MAG VITRINE',
+      customerPhone: customerPhone || currentUser?.phone || '',
+      rating: numRating,
+      criteria: criteria || {
+        deliverySpeed: numRating,
+        conformity: numRating,
+        communication: numRating
+      },
+      comment: comment || '',
+      date: new Date().toISOString().split('T')[0],
+      verifiedOrder: Boolean(orderId),
+      orderId: orderId || null
+    };
+
+    setStoreReviews(prev => [newReview, ...prev]);
+
+    // Recalculate and update store average rating
+    setStores(prevStores => {
+      return prevStores.map(s => {
+        if (s.id === storeId) {
+          const currentStoreReviews = storeReviews.filter(r => r.storeId === storeId);
+          const totalCount = currentStoreReviews.length + 1;
+          const sumRatings = currentStoreReviews.reduce((sum, r) => sum + r.rating, 0) + numRating;
+          const newAvg = parseFloat((sumRatings / totalCount).toFixed(1));
+          return {
+            ...s,
+            rating: newAvg,
+            reviewsCount: totalCount
+          };
+        }
+        return s;
+      });
+    });
+
+    if (orderId) {
+      setOrders(prevOrders => prevOrders.map(o => (o.id === orderId ? { ...o, isStoreRated: true } : o)));
+    }
+
+    return newReview;
+  };
+
+  // 2. Rate Customer Seriousness & Parcel Reception (Colis Reçu vs Colis Refusé + 1 to 5 Stars)
+  const rateCustomer = ({ orderId, customerPhone, customerName, storeId, storeName, parcelReceived, stars, reason, note }) => {
+    const isReceived = Boolean(parcelReceived);
+    const starCount = Number(stars) || (isReceived ? 5 : 1);
+
+    const newRating = {
+      id: `c_rat_${Date.now()}`,
+      orderId: orderId || `DZ-${Date.now().toString().slice(-4)}`,
+      customerPhone: customerPhone || '',
+      customerName: customerName || 'Client',
+      storeId: storeId || currentUser?.storeId || 'store_techzone',
+      storeName: storeName || 'Magasin MAG VITRINE',
+      parcelReceived: isReceived,
+      stars: starCount,
+      reason: reason || (isReceived ? 'تم استلام الطرد بنجاح والدفع' : 'عدم استلام / رفض الطرد'),
+      note: note || '',
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    setCustomerRatings(prev => [newRating, ...prev]);
+
+    // Update order status if orderId matches
+    if (orderId) {
+      setOrders(prevOrders => prevOrders.map(o => {
+        if (o.id === orderId) {
+          return {
+            ...o,
+            parcelReceived: isReceived,
+            customerRated: true,
+            customerStars: starCount,
+            customerRatingReason: reason,
+            // If refused, order step is set to 7 with refusal noted
+            statusStep: 7
+          };
+        }
+        return o;
+      }));
+    }
+
+    return newRating;
+  };
+
+  // Helper: Get customer reliability metrics and history
+  const getCustomerReliability = (phone, name) => {
+    const cleanP = phone ? phone.replace(/\D/g, '') : '';
+    const last8 = cleanP.slice(-8);
+
+    const relevantRatings = customerRatings.filter(r => {
+      const rPhone = r.customerPhone ? r.customerPhone.replace(/\D/g, '') : '';
+      if (last8 && rPhone && rPhone.endsWith(last8)) return true;
+      if (name && r.customerName && r.customerName.toLowerCase().trim() === name.toLowerCase().trim()) return true;
+      return false;
+    });
+
+    const matchingOrders = orders.filter(o => {
+      const oPhone = o.phone ? o.phone.replace(/\D/g, '') : '';
+      if (last8 && oPhone && oPhone.endsWith(last8)) return true;
+      if (name && o.customerName && o.customerName.toLowerCase().trim() === name.toLowerCase().trim()) return true;
+      return false;
+    });
+
+    let receivedCount = relevantRatings.filter(r => r.parcelReceived === true).length;
+    let refusedCount = relevantRatings.filter(r => r.parcelReceived === false).length;
+
+    // Check completed orders without explicit ratings
+    matchingOrders.forEach(o => {
+      const alreadyHasRating = relevantRatings.some(r => r.orderId === o.id);
+      if (!alreadyHasRating) {
+        if (o.parcelReceived === true) receivedCount += 1;
+        else if (o.parcelReceived === false) refusedCount += 1;
+      }
+    });
+
+    const totalEvaluated = receivedCount + refusedCount;
+    // Default 100% for fresh customer with no negative history
+    const scorePercent = totalEvaluated === 0 ? 100 : Math.round((receivedCount / totalEvaluated) * 100);
+
+    let badge = {
+      status: 'excellent',
+      labelAr: 'زبون جاد وموثوق 🌟 (استلام مضمون)',
+      labelFr: 'Client Sérieux & Fiable (100% Réception)',
+      color: '#15803d',
+      bg: '#dcfce7',
+      borderColor: '#86efac'
+    };
+
+    if (totalEvaluated > 0 && scorePercent < 70) {
+      badge = {
+        status: 'warning',
+        labelAr: 'تحذير: نسبة رفض طرود مرتفعة ⚠️',
+        labelFr: 'Attention : Taux de refus élevé',
+        color: '#b91c1c',
+        bg: '#fee2e2',
+        borderColor: '#fca5a5'
+      };
+    } else if (totalEvaluated > 0 && scorePercent < 90) {
+      badge = {
+        status: 'medium',
+        labelAr: 'زبون متوسط الجدية 📦',
+        labelFr: 'Client Moyen (Quelques retours)',
+        color: '#b45309',
+        bg: '#fef3c7',
+        borderColor: '#fde68a'
+      };
+    }
+
+    return {
+      totalEvaluated,
+      receivedCount,
+      refusedCount,
+      scorePercent,
+      badge,
+      ratings: relevantRatings
+    };
+  };
+
   const t = TRANSLATIONS[lang] || TRANSLATIONS.fr;
 
   return {
@@ -405,6 +745,11 @@ export function useAppStore() {
     products,
     cart,
     orders,
+    storeReviews,
+    customerRatings,
+    rateStore,
+    rateCustomer,
+    getCustomerReliability,
     users,
     currentUser,
     registerCustomer,

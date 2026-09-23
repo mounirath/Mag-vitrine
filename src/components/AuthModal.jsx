@@ -14,9 +14,7 @@ import {
   Eye,
   EyeOff,
   Sparkles,
-  Building,
-  Clock,
-  FileText
+  Building
 } from 'lucide-react';
 import { WILAYAS } from '../data/initialData';
 
@@ -43,22 +41,6 @@ export function AuthModal({
   const [loginRoleIntent, setLoginRoleIntent] = useState(
     initialTab === 'login_store' ? 'store' : (initialTab === 'login_customer' ? 'customer' : 'all')
   );
-
-  // Sync state whenever initialTab changes or modal opens
-  useEffect(() => {
-    setActiveTab(resolveTab(initialTab));
-    if (initialTab === 'login_store') {
-      setLoginRoleIntent('store');
-      setLoginEmail('contact@techzone.dz');
-    } else if (initialTab === 'login_customer') {
-      setLoginRoleIntent('customer');
-      setLoginEmail('client@gmail.com');
-    } else {
-      setLoginRoleIntent('all');
-    }
-    setErrorMsg('');
-    setSuccessMsg('');
-  }, [initialTab, isOpen]);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
@@ -91,6 +73,22 @@ export function AuthModal({
   // Status & Feedback
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Sync state whenever initialTab changes or modal opens
+  useEffect(() => {
+    setActiveTab(resolveTab(initialTab));
+    if (initialTab === 'login_store') {
+      setLoginRoleIntent('store');
+      setLoginEmail('contact@techzone.dz');
+    } else if (initialTab === 'login_customer') {
+      setLoginRoleIntent('customer');
+      setLoginEmail('client@gmail.com');
+    } else {
+      setLoginRoleIntent('all');
+    }
+    setErrorMsg('');
+    setSuccessMsg('');
+  }, [initialTab, isOpen]);
 
   if (!isOpen) return null;
 
@@ -128,7 +126,7 @@ export function AuthModal({
     setErrorMsg('');
 
     if (!loginEmail.trim()) {
-      setErrorMsg(isAr ? 'يرجى إدخال البريد الإلكتروني' : 'Veuillez saisir votre adresse email');
+      setErrorMsg(isAr ? 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف' : 'Veuillez saisir votre adresse email ou téléphone');
       return;
     }
 
@@ -138,7 +136,7 @@ export function AuthModal({
       setTimeout(() => {
         setSuccessMsg('');
         onClose();
-      }, 900);
+      }, 700);
     } catch (err) {
       setErrorMsg(isAr ? 'فشل تسجيل الدخول، يرجى المحاولة ثانية' : 'Échec de la connexion, veuillez réessayer');
     }
@@ -175,7 +173,7 @@ export function AuthModal({
       setTimeout(() => {
         setSuccessMsg('');
         onClose();
-      }, 1000);
+      }, 800);
     } catch (err) {
       setErrorMsg(isAr ? 'حدث خطأ أثناء إنشاء الحساب' : 'Une erreur est survenue lors de l inscription');
     }
@@ -217,11 +215,11 @@ export function AuthModal({
         password: storePassword || 'store123'
       });
 
-      setSuccessMsg(isAr ? 'تم فتح فترينة المتجر بنجاح ! يمكنك الآن إضافة حتى 50 إعلاناً' : 'Vitrine magasin créée avec succès ! Vous pouvez publier jusqu à 50 annonces.');
+      setSuccessMsg(isAr ? 'تم فتح فترينة المتجر بنجاح ! يمكنك الآن نشر حتى 50 إعلاناً' : 'Vitrine magasin créée avec succès ! Vous pouvez publier jusqu à 50 annonces.');
       setTimeout(() => {
         setSuccessMsg('');
         onClose();
-      }, 1200);
+      }, 1000);
     } catch (err) {
       setErrorMsg(isAr ? 'حدث خطأ أثناء تسجيل المتجر' : 'Une erreur est survenue lors de l inscription du magasin');
     }
@@ -233,8 +231,8 @@ export function AuthModal({
         className="modal-content"
         onClick={(e) => e.stopPropagation()}
         style={{
-          maxWidth: '540px',
-          padding: '1.4rem',
+          maxWidth: '520px',
+          padding: '1.35rem',
           maxHeight: '92vh',
           display: 'flex',
           flexDirection: 'column'
@@ -246,11 +244,11 @@ export function AuthModal({
         </button>
 
         {/* Top Header Badge */}
-        <div style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '0.2rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7', padding: '0.3rem 0.8rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: '800', marginBottom: '0.4rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '0.9rem', marginTop: '0.2rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(2, 132, 199, 0.1)', color: '#0284c7', padding: '0.25rem 0.75rem', borderRadius: '9999px', fontSize: '0.78rem', fontWeight: '800', marginBottom: '0.35rem' }}>
             <span>🇩🇿 MAG VITRINE DZ</span>
             <span>•</span>
-            <span>{isAr ? 'المنصة التجارية المعتمدة' : 'Plateforme Commerciale'}</span>
+            <span>{isAr ? 'تسجيل الدخول وحسابات المستخدمين' : 'Espace Utilisateur & Magasin'}</span>
           </div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--text-main)' }}>
             {activeTab === 'login' && (isAr ? 'تسجيل الدخول إلى حسابك' : 'Connexion à votre espace')}
@@ -259,7 +257,7 @@ export function AuthModal({
           </h2>
         </div>
 
-        {/* 3 Prominent Tabs */}
+        {/* 3 Prominent Navigation Tabs */}
         <div
           style={{
             display: 'grid',
@@ -269,7 +267,7 @@ export function AuthModal({
             borderRadius: '16px',
             border: '1px solid var(--border-light)',
             gap: '0.25rem',
-            marginBottom: '1rem'
+            marginBottom: '0.9rem'
           }}
         >
           {/* Tab 1: Login */}
@@ -285,7 +283,7 @@ export function AuthModal({
               border: 'none',
               background: activeTab === 'login' ? 'var(--navy-header)' : 'transparent',
               color: activeTab === 'login' ? '#ffffff' : 'var(--text-muted)',
-              fontSize: '0.8rem',
+              fontSize: '0.82rem',
               fontWeight: '800',
               cursor: 'pointer',
               display: 'flex',
@@ -297,7 +295,7 @@ export function AuthModal({
             }}
           >
             <LogIn size={15} />
-            <span>{isAr ? 'دخول' : 'Connexion'}</span>
+            <span>{isAr ? 'دخول لحساب' : 'Connexion'}</span>
           </button>
 
           {/* Tab 2: Register Client */}
@@ -313,7 +311,7 @@ export function AuthModal({
               border: 'none',
               background: activeTab === 'register_client' ? 'linear-gradient(135deg, #0284c7, #0369a1)' : 'transparent',
               color: activeTab === 'register_client' ? '#ffffff' : 'var(--text-muted)',
-              fontSize: '0.8rem',
+              fontSize: '0.82rem',
               fontWeight: '800',
               cursor: 'pointer',
               display: 'flex',
@@ -341,7 +339,7 @@ export function AuthModal({
               border: 'none',
               background: activeTab === 'register_store' ? 'linear-gradient(135deg, #d97706, #b45309)' : 'transparent',
               color: activeTab === 'register_store' ? '#ffffff' : 'var(--text-muted)',
-              fontSize: '0.8rem',
+              fontSize: '0.82rem',
               fontWeight: '800',
               cursor: 'pointer',
               display: 'flex',
@@ -364,12 +362,12 @@ export function AuthModal({
               background: '#fef2f2',
               border: '1px solid #fecaca',
               color: '#b91c1c',
-              padding: '0.7rem 0.85rem',
+              padding: '0.65rem 0.85rem',
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              marginBottom: '0.85rem',
+              marginBottom: '0.8rem',
               fontSize: '0.82rem',
               fontWeight: '700'
             }}
@@ -385,12 +383,12 @@ export function AuthModal({
               background: '#ecfdf5',
               border: '1px solid #a7f3d0',
               color: '#047857',
-              padding: '0.75rem 0.85rem',
+              padding: '0.7rem 0.85rem',
               borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              marginBottom: '0.85rem',
+              marginBottom: '0.8rem',
               fontSize: '0.84rem',
               fontWeight: '800'
             }}
@@ -403,7 +401,7 @@ export function AuthModal({
         {/* Scrollable Form Body */}
         <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.2rem' }}>
           {/* ========================================================
-              TAB 1: LOGIN (دخول)
+              TAB 1: LOGIN (دخول لحساب)
              ======================================================== */}
           {activeTab === 'login' && (
             <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
@@ -426,7 +424,7 @@ export function AuthModal({
                   }}
                   style={{
                     flex: 1,
-                    padding: '0.4rem',
+                    padding: '0.45rem',
                     borderRadius: '8px',
                     border: 'none',
                     background: loginRoleIntent === 'customer' ? 'var(--surface)' : 'transparent',
@@ -452,7 +450,7 @@ export function AuthModal({
                   }}
                   style={{
                     flex: 1,
-                    padding: '0.4rem',
+                    padding: '0.45rem',
                     borderRadius: '8px',
                     border: 'none',
                     background: loginRoleIntent === 'store' ? 'var(--surface)' : 'transparent',
@@ -476,7 +474,7 @@ export function AuthModal({
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: '800', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <Mail size={14} color="#0284c7" />
-                  <span>{isAr ? 'البريد الإلكتروني' : 'Adresse Email'}</span>
+                  <span>{isAr ? 'البريد الإلكتروني أو اسم المستخدم' : 'Adresse Email'}</span>
                 </label>
                 <input
                   type="email"
@@ -556,16 +554,16 @@ export function AuthModal({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.5rem',
-                  marginTop: '0.3rem',
+                  marginTop: '0.2rem',
                   boxShadow: '0 4px 12px rgba(15, 23, 42, 0.2)'
                 }}
               >
                 <LogIn size={17} />
-                <span>{isAr ? 'تسجيل الدخول الآن' : 'Se Connecter'}</span>
+                <span>{isAr ? 'دخول لحساب الآن' : 'Se Connecter'}</span>
               </button>
 
               {/* Quick Demo Logins */}
-              <div style={{ borderTop: '1px dashed var(--border-light)', paddingTop: '0.75rem', marginTop: '0.3rem' }}>
+              <div style={{ borderTop: '1px dashed var(--border-light)', paddingTop: '0.75rem', marginTop: '0.2rem' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.45rem', textAlign: 'center' }}>
                   {isAr ? '⚡ تجربة سريعة بدون كتابة :' : '⚡ Connexion rapide en 1 clic :'}
                 </div>
@@ -631,7 +629,7 @@ export function AuthModal({
                   padding: '0.75rem',
                   textAlign: 'center',
                   fontSize: '0.8rem',
-                  marginTop: '0.3rem'
+                  marginTop: '0.2rem'
                 }}
               >
                 <div style={{ color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
@@ -651,7 +649,7 @@ export function AuthModal({
                       textDecoration: 'underline'
                     }}
                   >
-                    {isAr ? 'إنشاء حساب زبون مجاناً' : 'Créer un compte client'}
+                    {isAr ? 'إنشاء حساب زبون' : 'Créer un compte client'}
                   </button>
                   <span>|</span>
                   <button
@@ -910,7 +908,7 @@ export function AuthModal({
                     textDecoration: 'underline'
                   }}
                 >
-                  {isAr ? 'سجل دخولك هنا' : 'Connectez-vous ici'}
+                  {isAr ? 'دخول لحساب هنا' : 'Connectez-vous ici'}
                 </button>
               </div>
             </form>
@@ -1060,7 +1058,7 @@ export function AuthModal({
                 </div>
               </div>
 
-              {/* Wilaya & Address */}
+              {/* Wilaya & Commune */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '0.65rem' }}>
                 <div>
                   <label style={{ fontSize: '0.78rem', fontWeight: '800', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -1222,7 +1220,7 @@ export function AuthModal({
                 }}
               >
                 <Store size={18} />
-                <span>{isAr ? 'فتح وتأكيد فترينة المتجر (50 إعلان)' : 'Créer ma Vitrine (50 annonces gratuites)'}</span>
+                <span>{isAr ? 'فتح وتأكيد فترينة المتجر (50 إعلان مجاناً)' : 'Créer ma Vitrine (50 annonces gratuites)'}</span>
               </button>
 
               {/* Switch to login */}
@@ -1243,7 +1241,7 @@ export function AuthModal({
                     textDecoration: 'underline'
                   }}
                 >
-                  {isAr ? 'سجل دخول التاجر هنا' : 'Connectez-vous ici'}
+                  {isAr ? 'دخول لحساب التاجر هنا' : 'Connectez-vous ici'}
                 </button>
               </div>
             </form>

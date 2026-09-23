@@ -19,6 +19,10 @@ import { AuthModal } from './components/AuthModal';
 import { CameraAiSearchModal } from './components/CameraAiSearchModal';
 import { StoreDashboardModal } from './components/StoreDashboardModal';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
+import { RateStoreModal } from './components/RateStoreModal';
+import { RateCustomerModal } from './components/RateCustomerModal';
+import { CustomerSeriousnessModal } from './components/CustomerSeriousnessModal';
+import { StoreReviewsModal } from './components/StoreReviewsModal';
 import { Plus, SlidersHorizontal, MapPin } from 'lucide-react';
 
 export default function App() {
@@ -31,6 +35,11 @@ export default function App() {
     products,
     cart,
     orders,
+    storeReviews,
+    customerRatings,
+    rateStore,
+    rateCustomer,
+    getCustomerReliability,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -69,6 +78,12 @@ export default function App() {
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [negotiationProduct, setNegotiationProduct] = useState(null);
+
+  // Merchant rating and customer reliability modals state
+  const [rateStoreConfig, setRateStoreConfig] = useState({ isOpen: false, store: null, order: null });
+  const [rateCustomerConfig, setRateCustomerConfig] = useState({ isOpen: false, order: null });
+  const [customerSeriousnessConfig, setCustomerSeriousnessConfig] = useState({ isOpen: false, customer: null, reliability: null });
+  const [storeReviewsConfig, setStoreReviewsConfig] = useState({ isOpen: false, store: null });
 
   // Auth modal
   const [authModalConfig, setAuthModalConfig] = useState({ isOpen: false, initialMode: 'login' });
@@ -136,6 +151,11 @@ export default function App() {
     if (!selectedProduct) return stores[0];
     return stores.find(s => s.id === selectedProduct.storeId) || stores[0];
   }, [selectedProduct, stores]);
+
+  // Is current logged in user a merchant / store
+  const isStoreUser = Boolean(
+    currentUser && (currentUser.role === 'store' || currentUser.storeId)
+  );
 
   return (
     <div className="app-viewport" data-theme={theme} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
@@ -284,28 +304,38 @@ export default function App() {
             onOpenDashboard={() => setIsDashboardOpen(true)}
             onOpenTracking={() => setIsTrackingOpen(true)}
             onOpenTrustPortal={() => setIsTrustPortalOpen(true)}
+            onOpenPublish={() => setIsPublishModalOpen(true)}
+            onOpenRateStore={(targetStore, targetOrder) => setRateStoreConfig({ isOpen: true, store: targetStore, order: targetOrder })}
+            onOpenStoreReviews={(targetStore) => setStoreReviewsConfig({ isOpen: true, store: targetStore })}
+            onOpenCustomerSeriousness={(targetCustomer, rel) => setCustomerSeriousnessConfig({ isOpen: true, customer: targetCustomer, reliability: rel })}
+            getCustomerReliability={getCustomerReliability}
             stores={stores}
+            orders={orders}
             lang={lang}
             t={t}
           />
         )}
       </div>
 
-      {/* Floating "Vendre (+)" Orange Button matching screenshot */}
-      <button
-        className="btn-vendre-floating"
-        onClick={() => setIsPublishModalOpen(true)}
-        aria-label="Vendre ou publier une annonce"
-      >
-        <Plus size={20} />
-        <span>Vendre (+)</span>
-      </button>
+      {/* Floating "Vendre (+)" Orange Button - VISIBLE ONLY FOR MERCHANTS / STORES */}
+      {isStoreUser && (
+        <button
+          className="btn-vendre-floating"
+          onClick={() => setIsPublishModalOpen(true)}
+          aria-label="Vendre ou publier une annonce"
+          title={lang === 'ar' ? 'نشر إعلان متجر جديد (+)' : 'Vendre ou publier une annonce'}
+        >
+          <Plus size={20} />
+          <span>{lang === 'ar' ? 'نشر إعلان (+)' : 'Vendre (+)'}</span>
+        </button>
+      )}
 
       {/* Bottom Navigation Bar matching screenshot */}
       <BottomNavBar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         unreadMessages={1}
+        isStoreUser={isStoreUser}
         lang={lang}
         t={t}
       />
@@ -328,6 +358,7 @@ export default function App() {
           setNegotiationProduct(prod);
         }}
         onOpenTrustPortal={() => setIsTrustPortalOpen(true)}
+        onOpenStoreReviews={(targetStore) => setStoreReviewsConfig({ isOpen: true, store: targetStore })}
         lang={lang}
         t={t}
       />
@@ -435,6 +466,12 @@ export default function App() {
         orders={orders}
         onAddProduct={addProduct}
         onDeleteProduct={deleteProduct}
+        onOpenRateCustomer={(order) => setRateCustomerConfig({ isOpen: true, order })}
+        onOpenCustomerSeriousness={(customer, rel) => setCustomerSeriousnessConfig({ isOpen: true, customer, reliability: rel })}
+        onOpenStoreReviews={(targetStore) => setStoreReviewsConfig({ isOpen: true, store: targetStore })}
+        getCustomerReliability={getCustomerReliability}
+        storeReviews={storeReviews}
+        lang={lang}
         t={t}
       />
 
@@ -444,6 +481,57 @@ export default function App() {
         onClose={() => setIsTrackingOpen(false)}
         orders={orders}
         stores={stores}
+        onOpenRateStore={(targetStore, targetOrder) => setRateStoreConfig({ isOpen: true, store: targetStore, order: targetOrder })}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 12. Rate Merchant Experience Modal (1 to 5 Stars + Criteria) */}
+      <RateStoreModal
+        isOpen={rateStoreConfig.isOpen}
+        onClose={() => setRateStoreConfig({ isOpen: false, store: null, order: null })}
+        store={rateStoreConfig.store || stores[0]}
+        order={rateStoreConfig.order}
+        onSubmitReview={(reviewData) => {
+          rateStore(reviewData);
+        }}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 13. Rate Customer Seriousness & Parcel Reception Modal (Colis reçu vs refusé + 1 to 5 Stars) */}
+      <RateCustomerModal
+        isOpen={rateCustomerConfig.isOpen}
+        onClose={() => setRateCustomerConfig({ isOpen: false, order: null })}
+        order={rateCustomerConfig.order}
+        onSubmitRating={(ratingData) => {
+          rateCustomer(ratingData);
+        }}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 14. Customer Seriousness & Anti-Retour Dossier Modal */}
+      <CustomerSeriousnessModal
+        isOpen={customerSeriousnessConfig.isOpen}
+        onClose={() => setCustomerSeriousnessConfig({ isOpen: false, customer: null, reliability: null })}
+        customer={customerSeriousnessConfig.customer}
+        reliability={customerSeriousnessConfig.reliability}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 15. Store Reviews & Certified Feedback Modal */}
+      <StoreReviewsModal
+        isOpen={storeReviewsConfig.isOpen}
+        onClose={() => setStoreReviewsConfig({ isOpen: false, store: null })}
+        store={storeReviewsConfig.store || stores[0]}
+        reviews={storeReviews}
+        onOpenRateStore={(targetStore) => {
+          setStoreReviewsConfig({ isOpen: false, store: null });
+          setRateStoreConfig({ isOpen: true, store: targetStore, order: null });
+        }}
+        lang={lang}
         t={t}
       />
     </div>
