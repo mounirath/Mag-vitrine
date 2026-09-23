@@ -180,9 +180,14 @@ export default function App() {
             {/* 2. Recent lines / Product Grid matching screenshot */}
             <section className="recent-lines-section">
               <div className="section-label-row">
-                <h2 className="section-label">
-                  {lang === 'ar' ? 'أحدث الإعلانات' : 'Recent lines'}
-                </h2>
+                <div>
+                  <h2 className="section-label" style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <span>{lang === 'ar' ? 'إعلانات المحلات والمتاجر المعتمدة' : 'Annonces Exclusives Magasins'}</span>
+                  </h2>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>
+                    {lang === 'ar' ? 'جميع العروض مدرجة من طرف محلات ومتاجر تجارية حقيقية بضمانات' : '100% articles vendus et garantis par des boutiques physiques agréées'}
+                  </p>
+                </div>
                 <span
                   className="section-link"
                   onClick={() => setIsFilterOpen(true)}
@@ -196,7 +201,7 @@ export default function App() {
               {filteredProducts.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2.5rem 1rem', background: 'var(--surface)', borderRadius: '18px', border: '1px dashed var(--border-light)' }}>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.8rem' }}>
-                    Aucun objet ne correspond à votre recherche.
+                    {lang === 'ar' ? 'لا توجد إعلانات مطابقة لبحثك في المحلات حالياً.' : 'Aucun objet ne correspond à votre recherche.'}
                   </p>
                   <button
                     onClick={() => {
@@ -207,22 +212,26 @@ export default function App() {
                     }}
                     style={{ background: 'var(--orange-action)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
                   >
-                    Réinitialiser les filtres
+                    {lang === 'ar' ? 'إعادة ضبط التصفية' : 'Réinitialiser les filtres'}
                   </button>
                 </div>
               ) : (
                 <div className="recent-lines-grid">
-                  {filteredProducts.map((prod) => (
-                    <ProductCard
-                      key={prod.id}
-                      product={prod}
-                      onSelect={(p) => setSelectedProduct(p)}
-                      isFavorite={favorites.has(prod.id)}
-                      onToggleFavorite={handleToggleFavorite}
-                      lang={lang}
-                      t={t}
-                    />
-                  ))}
+                  {filteredProducts.map((prod) => {
+                    const prodStore = stores.find(s => s.id === prod.storeId) || stores[0];
+                    return (
+                      <ProductCard
+                        key={prod.id}
+                        product={prod}
+                        store={prodStore}
+                        onSelect={(p) => setSelectedProduct(p)}
+                        isFavorite={favorites.has(prod.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                        lang={lang}
+                        t={t}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -375,6 +384,7 @@ export default function App() {
           addProduct(newProd);
         }}
         currentUser={currentUser}
+        stores={stores}
         onOpenAuth={(mode) => setAuthModalConfig({ isOpen: true, initialMode: mode })}
         lang={lang}
         t={t}

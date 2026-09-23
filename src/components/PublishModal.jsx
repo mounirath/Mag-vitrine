@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Upload, Plus, Camera, Video, DollarSign, MapPin, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowLeft, Upload, Plus, Camera, Video, DollarSign, MapPin, CheckCircle2, ShieldCheck, Sparkles, Store, AlertCircle } from 'lucide-react';
 import { CATEGORIES, WILAYAS } from '../data/initialData';
 
 export function PublishModal({
@@ -7,6 +7,7 @@ export function PublishModal({
   onClose,
   onPublishSuccess,
   currentUser,
+  stores = [],
   onOpenAuth,
   lang,
   t
@@ -15,45 +16,52 @@ export function PublishModal({
   const [price, setPrice] = useState('');
   const [categoryId, setCategoryId] = useState('cat_furniture');
   const [wilaya, setWilaya] = useState('Alger');
-  const [condition, setCondition] = useState('Très bon état');
+  const [condition, setCondition] = useState('Neuf avec étiquette');
   const [description, setDescription] = useState('');
-  const [hasVideoTour, setHasVideoTour] = useState(false);
+  const [hasVideoTour, setHasVideoTour] = useState(true);
   const [imagePreview, setImagePreview] = useState('https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=700');
+  const [selectedStoreId, setSelectedStoreId] = useState(currentUser?.storeId || (stores[0]?.id || 'store_techzone'));
   const [published, setPublished] = useState(false);
 
   if (!isOpen) return null;
   const isAr = lang === 'ar';
 
+  const isStoreUser = currentUser && currentUser.role === 'store';
+  const effectiveStore = stores.find(s => s.id === selectedStoreId) || stores[0];
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title || !price) {
-      alert('Veuillez remplir le titre et le prix');
+      alert(isAr ? 'يرجى إدخال اسم الإعلان وسعر السلعة' : 'Veuillez remplir le titre et le prix');
       return;
     }
 
+    const assignedStore = stores.find(s => s.id === selectedStoreId) || stores[0];
+
     const newProduct = {
       id: `prod_${Date.now()}`,
-      storeId: currentUser?.storeId || 'store_user',
+      storeId: assignedStore?.id || 'store_techzone',
+      storeName: assignedStore?.name || (isAr ? 'محل تجاري معتمد' : 'Magasin Vérifié'),
       categoryId,
       name: title,
       nameAr: title,
-      description: description || `${title} en excellent état. Remise en main propre possible.`,
+      description: description || `${title} متوفر لدى ${assignedStore?.name || 'المحل'}. ضمان أصلي وسلعة متوفرة في المحل.`,
       price: Number(price),
       priceEur: Math.round(Number(price) / 200),
-      location: `${wilaya}, Algérie`,
-      locationShort: wilaya,
+      location: `${assignedStore?.address || wilaya}, ${assignedStore?.wilaya || wilaya}`,
+      locationShort: assignedStore?.wilaya || wilaya,
       condition,
-      conditionStars: condition.includes('Très') || condition.includes('Neuf') ? 5 : 4,
+      conditionStars: 5,
       image: imagePreview,
       gallery: [imagePreview],
       hasVideoTour,
       historyAvailable: true,
-      stock: 1,
-      wilaya,
-      sellerRating: 4.9,
-      sellerReviews: 1,
-      verifiedSeller: !!currentUser?.verifiedVideo,
-      coords: { x: 45, y: 50 }
+      stock: 5,
+      wilaya: assignedStore?.wilaya || wilaya,
+      sellerRating: assignedStore?.rating || 4.9,
+      sellerReviews: (assignedStore?.reviewsCount || 40) + 1,
+      verifiedSeller: true,
+      coords: assignedStore?.coords || { x: 45, y: 50 }
     };
 
     onPublishSuccess(newProduct);
@@ -84,36 +92,55 @@ export function PublishModal({
               <CheckCircle2 size={36} color="#16a34a" />
             </div>
             <h3 style={{ fontSize: '1.3rem', fontWeight: '800', marginBottom: '0.5rem' }}>
-              {isAr ? 'تم نشر إعلانك بنجاح!' : 'Annonce Publiée avec Succès !'}
+              {isAr ? 'تم نشر إعلان المحل بنجاح!' : 'Annonce Publiée avec Succès !'}
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Votre objet est maintenant visible sur MAG VITRINE et Local-Connect.
+              {isAr ? 'تم إدراج السلعة في فترينة المحل وهي متاحة الآن للزبائن مع شارة المحل المعتمد.' : 'Votre objet est maintenant visible sur MAG VITRINE et Local-Connect.'}
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            {/* Seller status notice */}
-            {!currentUser ? (
-              <div style={{ background: '#fef3c7', borderRadius: '14px', padding: '0.85rem', border: '1px solid #fde68a', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: '0.8rem', color: '#92400e' }}>
-                  <strong>Conseil :</strong> Créez un compte magasin gratuit pour obtenir le badge <strong>Vérifié par Vidéo</strong> et 50 annonces !
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth('register_store')}
-                  style={{ background: 'var(--orange-action)', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.4rem 0.7rem', fontSize: '0.75rem', fontWeight: '800', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                >
-                  Ouvrir Vitrine
-                </button>
-              </div>
-            ) : (
-              <div style={{ background: '#f0fdf4', borderRadius: '14px', padding: '0.75rem', border: '1px solid #bbf7d0', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ShieldCheck size={18} color="#16a34a" />
-                <span style={{ fontSize: '0.8rem', color: '#166534', fontWeight: '700' }}>
-                  Publication en tant que : {currentUser.name} {currentUser.role === 'store' ? '(Boutique Vérifiée)' : '(Particulier)'}
+            {/* Store-Only Announcement Banner */}
+            <div style={{ background: 'linear-gradient(135deg, rgba(217, 119, 6, 0.12), rgba(245, 158, 11, 0.08))', borderRadius: '14px', padding: '0.85rem 1rem', border: '1px solid rgba(217, 119, 6, 0.25)', marginBottom: '1.2rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.3rem' }}>
+                <Store size={18} color="#d97706" />
+                <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#92400e' }}>
+                  {isAr ? 'نظام إعلانات المحلات والمتاجر فقط' : 'Publication réservée aux Magasins'}
                 </span>
               </div>
-            )}
+              <p style={{ fontSize: '0.78rem', color: '#78350f', margin: 0, lineHeight: 1.4 }}>
+                {isAr
+                  ? 'جميع الإعلانات على المنصة مخصصة للمحلات التجارية والمتاجر المعتمدة لضمان الجودة والتسليم الآمن.'
+                  : 'Toutes les annonces publiées sont automatiquement associées à un magasin agréé avec garantie.'}
+              </p>
+            </div>
+
+            {/* Select Store Assignment */}
+            <div style={{ marginBottom: '1.2rem' }}>
+              <label style={{ fontSize: '0.85rem', fontWeight: '800', display: 'block', marginBottom: '0.4rem', color: 'var(--text-main)' }}>
+                {isAr ? 'المحل التجاري المعلن' : 'Magasin Vendeur'}
+              </label>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <select
+                  value={selectedStoreId}
+                  onChange={(e) => {
+                    setSelectedStoreId(e.target.value);
+                    const s = stores.find(st => st.id === e.target.value);
+                    if (s) setWilaya(s.wilaya);
+                  }}
+                  style={{ flex: 1, padding: '0.75rem 0.9rem', borderRadius: '12px', border: '1px solid var(--border-light)', background: 'var(--surface)', fontSize: '0.88rem', fontWeight: '700' }}
+                >
+                  {stores.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      🏪 {s.name} ({s.wilaya} - {s.address})
+                    </option>
+                  ))}
+                </select>
+                <div style={{ width: '42px', height: '42px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border-light)' }}>
+                  <img src={effectiveStore?.logo} alt="Store logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+              </div>
+            </div>
 
             {/* Photo preview selector */}
             <div style={{ marginBottom: '1.2rem' }}>

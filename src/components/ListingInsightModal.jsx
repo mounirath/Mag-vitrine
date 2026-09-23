@@ -177,20 +177,25 @@ export function ListingInsightModal({
             <img
               src={store ? store.logo : 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=100'}
               alt="Vendor"
-              style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #6366f1' }}
+              style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', border: '2px solid #6366f1' }}
             />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span style={{ fontSize: '0.92rem', fontWeight: '800' }}>{store ? store.name : 'Vendeur Certifié'}</span>
+                <span style={{ fontSize: '0.92rem', fontWeight: '800' }}>{store ? store.name : (isAr ? 'محل تجاري معتمد' : 'Boutique Agréée')}</span>
                 <ShieldCheck size={16} color="#6366f1" />
               </div>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Compte vérifié par vidéo • {product.sellerRating || 4.8} ★
+                {isAr ? `محل مرخّص وموثّق بالفيديو • ${product.sellerRating || 4.9} ★` : `Boutique vérifiée par vidéo • ${product.sellerRating || 4.8} ★`}
               </div>
+              {store?.address && (
+                <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: '600', marginTop: '0.15rem' }}>
+                  📍 {store.address}, {store.wilaya}
+                </div>
+              )}
             </div>
           </div>
           <span style={{ fontSize: '0.8rem', color: '#6366f1', fontWeight: '700' }}>
-            {isAr ? 'عرض الثقة >' : 'Vérifier >'}
+            {isAr ? 'بيانات المحل >' : 'Vérifier >'}
           </span>
         </div>
 
