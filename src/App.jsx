@@ -161,6 +161,8 @@ export default function App() {
           wilayaFilter={wilayaFilter}
           setWilayaFilter={setWilayaFilter}
           currentUser={currentUser}
+          onOpenAuth={(mode) => setAuthModalConfig({ isOpen: true, initialMode: mode || 'login' })}
+          onLogout={logout}
           t={t}
         />
 

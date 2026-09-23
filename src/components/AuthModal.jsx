@@ -1,19 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, User, Store, LogIn, UserPlus, CheckCircle2, ShieldCheck, Phone, Mail, MapPin, Lock, MessageCircle } from 'lucide-react';
 import { WILAYAS } from '../data/initialData';
 
 export function AuthModal({
   isOpen,
   onClose,
-  initialTab = 'login', // 'login', 'register_client', 'register_store'
+  initialTab = 'login', // 'login', 'login_customer', 'login_store', 'register_client', 'register_store'
   onLogin,
   onRegisterCustomer,
   onRegisterStore,
   lang,
   t
 }) {
-  const [activeTab, setActiveTab] = useState(initialTab);
+  // Normalize initialTab
+  const getTabMode = (tab) => {
+    if (tab === 'login_customer' || tab === 'login_store') return 'login';
+    return tab || 'login';
+  };
+
+  const [activeTab, setActiveTab] = useState(getTabMode(initialTab));
+  const [loginRoleIntent, setLoginRoleIntent] = useState(
+    initialTab === 'login_store' ? 'store' : (initialTab === 'login_customer' ? 'customer' : 'all')
+  );
   const isAr = lang === 'ar';
+
+  // Synchronize state when modal opens or initialTab changes
+  useEffect(() => {
+    setActiveTab(getTabMode(initialTab));
+    if (initialTab === 'login_store') {
+      setLoginRoleIntent('store');
+      setLoginEmail('contact@techzone.dz');
+    } else if (initialTab === 'login_customer') {
+      setLoginRoleIntent('customer');
+      setLoginEmail('client@gmail.com');
+    } else {
+      setLoginRoleIntent('all');
+    }
+  }, [initialTab, isOpen]);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
@@ -147,13 +170,77 @@ export function AuthModal({
         {activeTab === 'login' && (
           <form onSubmit={handleLoginSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem' }}>
-                <User size={24} color="var(--primary)" />
+              <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: loginRoleIntent === 'store' ? 'rgba(217, 119, 6, 0.15)' : 'var(--badge-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 0.5rem' }}>
+                {loginRoleIntent === 'store' ? <Store size={26} color="#d97706" /> : <User size={26} color="var(--primary)" />}
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: '800' }}>{t.authLogin}</h3>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800' }}>
+                {loginRoleIntent === 'store'
+                  ? (isAr ? 'دخول تاجر / صاحب متجر' : 'Connexion Commerçant / Magasin')
+                  : (loginRoleIntent === 'customer'
+                    ? (isAr ? 'دخول المستخدم / الزبون' : 'Connexion Client')
+                    : t.authLogin)}
+              </h3>
               <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                Connectez-vous pour suivre vos commandes ou gérer votre vitrine
+                {loginRoleIntent === 'store'
+                  ? (isAr ? 'إدارة فترينتك التجارية ومتابعة الطلبات وتعديل الأسعار' : 'Gérez votre vitrine, vos stocks et recevez vos commandes directes')
+                  : (isAr ? 'متابعة مشترياتك وطلباتك السريعة والتواصل مع المتاجر' : 'Connectez-vous pour suivre vos commandes ou gérer votre vitrine')}
               </p>
+
+              {/* Role Toggle Switch inside Login */}
+              <div style={{ display: 'flex', background: 'var(--surface-alt)', padding: '0.25rem', borderRadius: '12px', marginTop: '0.75rem', gap: '0.25rem', border: '1px solid var(--border)' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginRoleIntent('customer');
+                    setLoginEmail('client@gmail.com');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '0.45rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: loginRoleIntent === 'customer' ? 'var(--surface)' : 'transparent',
+                    color: loginRoleIntent === 'customer' ? 'var(--primary)' : 'var(--text-muted)',
+                    fontWeight: '800',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.35rem',
+                    boxShadow: loginRoleIntent === 'customer' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
+                  }}
+                >
+                  <User size={14} />
+                  <span>{isAr ? 'دخول مستخدم' : 'Espace Client'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginRoleIntent('store');
+                    setLoginEmail('contact@techzone.dz');
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '0.45rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: loginRoleIntent === 'store' ? 'var(--surface)' : 'transparent',
+                    color: loginRoleIntent === 'store' ? '#d97706' : 'var(--text-muted)',
+                    fontWeight: '800',
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.35rem',
+                    boxShadow: loginRoleIntent === 'store' ? '0 2px 6px rgba(0,0,0,0.08)' : 'none'
+                  }}
+                >
+                  <Store size={14} />
+                  <span>{isAr ? 'دخول تاجر' : 'Espace Vendeur'}</span>
+                </button>
+              </div>
             </div>
 
             <div>
