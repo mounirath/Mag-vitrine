@@ -1,54 +1,73 @@
 import React from 'react';
-import { ShoppingCart, Star, MapPin } from 'lucide-react';
+import { Heart, MapPin, Video, Star } from 'lucide-react';
 
-export function ProductCard({ product, store, onSelectProduct, onAddToCart, lang, t }) {
+export function ProductCard({
+  product,
+  onSelect,
+  isFavorite,
+  onToggleFavorite,
+  lang,
+  t
+}) {
   const isAr = lang === 'ar';
   const title = isAr && product.nameAr ? product.nameAr : product.name;
 
   return (
-    <div className="product-card" onClick={() => onSelectProduct(product)}>
-      <div className="prod-img-wrap">
+    <div
+      className="item-line-card"
+      onClick={() => onSelect(product)}
+    >
+      {/* Photo Wrapper */}
+      <div className="item-photo-wrapper">
         <img
           src={product.image}
           alt={title}
-          className="prod-img"
-          onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500'; }}
+          loading="lazy"
+          onError={(e) => {
+            e.target.src = 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500';
+          }}
         />
-        {product.discountPercent > 0 && (
-          <span className="discount-badge">-{product.discountPercent}%</span>
+
+        {/* Favorite Heart Button */}
+        <button
+          className={`fav-heart-btn ${isFavorite ? 'liked' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(product.id);
+          }}
+          aria-label="Ajouter aux favoris"
+        >
+          <Heart size={16} fill={isFavorite ? '#ef4444' : 'none'} />
+        </button>
+
+        {/* Video tour small pill if available */}
+        {product.hasVideoTour && (
+          <div style={{ position: 'absolute', bottom: '6px', left: '6px', background: 'rgba(15, 23, 42, 0.75)', color: '#fff', padding: '0.15rem 0.45rem', borderRadius: '6px', fontSize: '0.65rem', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <Video size={10} color="#38bdf8" />
+            <span>360°</span>
+          </div>
         )}
       </div>
 
-      <div className="prod-body">
-        {store && (
-          <div className="prod-store-link">
-            <span>{store.name}</span> • <span>{product.wilaya}</span>
-          </div>
-        )}
+      {/* Item info */}
+      <div className="item-info-box">
+        <h3 className="item-name" title={title}>
+          {title}
+        </h3>
 
-        <h4 className="prod-title" title={title}>{title}</h4>
-
-        <div className="price-wrap">
-          <span className="current-price">
-            {product.price.toLocaleString()} {t.currency}
-          </span>
-          {product.oldPrice && (
-            <span className="old-price">
-              {product.oldPrice.toLocaleString()} {t.currency}
+        <div className="item-price-tag">
+          {product.price.toLocaleString()} DZD
+          {product.priceEur && (
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: '600', marginLeft: '0.35rem' }}>
+              ({product.priceEur} €)
             </span>
           )}
         </div>
 
-        <button
-          className="btn-add-cart"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddToCart(product);
-          }}
-        >
-          <ShoppingCart size={16} />
-          <span>{t.addToCart}</span>
-        </button>
+        <div className="item-location-tag">
+          <MapPin size={12} color="var(--orange-action)" />
+          <span>{product.locationShort || product.wilaya}</span>
+        </div>
       </div>
     </div>
   );

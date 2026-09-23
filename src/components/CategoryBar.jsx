@@ -1,36 +1,57 @@
 import React from 'react';
 import { CATEGORIES } from '../data/initialData';
-import { Sparkles, Smartphone, Shirt, Home, Sparkle, Apple, Car } from 'lucide-react';
+import { Armchair, Tv, Shirt, Wrench, Layers, Sparkles, LayoutGrid } from 'lucide-react';
 
 const ICON_MAP = {
-  Sparkles,
-  Smartphone,
-  Shirt,
-  Home,
-  Sparkle,
-  Apple,
-  Car
+  Armchair: Armchair,
+  Tv: Tv,
+  Shirt: Shirt,
+  Wrench: Wrench,
+  Layers: Layers,
+  Sparkles: Sparkles
 };
 
-export function CategoryBar({ selectedCategory, onSelectCategory, lang }) {
-  return (
-    <div className="category-scroller">
-      {CATEGORIES.map(cat => {
-        const Icon = ICON_MAP[cat.icon] || Sparkles;
-        const label = lang === 'ar' ? cat.nameAr : (lang === 'en' ? cat.nameEn : cat.nameFr);
-        const isActive = selectedCategory === cat.id;
+export function CategoryBar({ selectedCategory, onSelectCategory, lang, t }) {
+  const isAr = lang === 'ar';
 
-        return (
-          <button
-            key={cat.id}
-            className={`cat-chip ${isActive ? 'active' : ''}`}
-            onClick={() => onSelectCategory(cat.id)}
-          >
-            <Icon size={16} />
-            <span>{label}</span>
-          </button>
-        );
-      })}
-    </div>
+  return (
+    <section className="categories-section">
+      <div className="section-label-row">
+        <h2 className="section-label">
+          {isAr ? 'الأقسام الذكية' : 'Categories'}
+        </h2>
+        <span
+          className="section-link"
+          onClick={() => onSelectCategory('all')}
+        >
+          {selectedCategory === 'all' ? (isAr ? 'عرض الكل' : 'Tous') : (isAr ? 'إلغاء التحديد' : 'Réinitialiser')}
+        </span>
+      </div>
+
+      <div className="pastel-categories-grid">
+        {CATEGORIES.filter(c => c.id !== 'all').map((cat) => {
+          const IconComp = ICON_MAP[cat.icon] || Sparkles;
+          const isSelected = selectedCategory === cat.id;
+
+          return (
+            <div
+              key={cat.id}
+              className={`pastel-category-card ${isSelected ? 'active' : ''}`}
+              onClick={() => onSelectCategory(isSelected ? 'all' : cat.id)}
+            >
+              <div
+                className="pastel-category-icon-box"
+                style={{ background: cat.bg, color: cat.color }}
+              >
+                <IconComp size={24} />
+              </div>
+              <span className="pastel-category-title">
+                {isAr ? cat.nameAr : cat.nameFr}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

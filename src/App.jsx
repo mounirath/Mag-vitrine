@@ -1,18 +1,25 @@
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from './data/store';
-import { WILAYAS } from './data/initialData';
+import { WILAYAS, CATEGORIES } from './data/initialData';
 import { Header } from './components/Header';
-import { HeroBanner } from './components/HeroBanner';
 import { CategoryBar } from './components/CategoryBar';
-import { StoreCard } from './components/StoreCard';
 import { ProductCard } from './components/ProductCard';
-import { ProductModal } from './components/ProductModal';
+import { CollectionsBanner } from './components/CollectionsBanner';
+import { BottomNavBar } from './components/BottomNavBar';
+import { ListingInsightModal } from './components/ListingInsightModal';
+import { TrustSafetyPortal } from './components/TrustSafetyPortal';
+import { LocalConnectView } from './components/LocalConnectView';
+import { ValueEstimatorModal } from './components/ValueEstimatorModal';
+import { AdvancedFilterModal } from './components/AdvancedFilterModal';
+import { NegotiationChatModal } from './components/NegotiationChatModal';
+import { PublishModal } from './components/PublishModal';
+import { UserProfileTab } from './components/UserProfileTab';
 import { CartDrawer } from './components/CartDrawer';
-import { OrderTrackingModal } from './components/OrderTrackingModal';
+import { AuthModal } from './components/AuthModal';
 import { CameraAiSearchModal } from './components/CameraAiSearchModal';
 import { StoreDashboardModal } from './components/StoreDashboardModal';
-import { Footer } from './components/Footer';
-import { Search, Store, Package, Sparkles, Filter, Camera } from 'lucide-react';
+import { OrderTrackingModal } from './components/OrderTrackingModal';
+import { Plus, SlidersHorizontal, MapPin } from 'lucide-react';
 
 export default function App() {
   const {
@@ -31,312 +38,402 @@ export default function App() {
     addProduct,
     deleteProduct,
     createOrder,
+    currentUser,
+    registerCustomer,
+    registerStore,
+    login,
+    logout,
     t
   } = useAppStore();
 
+  // Navigation tab: 'home', 'local_connect', 'publish', 'messages', 'profile'
   const [activeTab, setActiveTab] = useState('home');
-  const [selectedWilaya, setSelectedWilaya] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
 
-  // Modals state
+  // Filters state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [wilayaFilter, setWilayaFilter] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [advancedFilters, setAdvancedFilters] = useState(null);
+
+  // Favorites state (initialized with Sofa Design favorited as in screenshot)
+  const [favorites, setFavorites] = useState(new Set(['prod_sofa']));
+
+  // Modal Views
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isTrustPortalOpen, setIsTrustPortalOpen] = useState(false);
+  const [isEstimatorOpen, setIsEstimatorOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isTrackingOpen, setIsTrackingOpen] = useState(false);
   const [isAiSearchOpen, setIsAiSearchOpen] = useState(false);
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isTrackingOpen, setIsTrackingOpen] = useState(false);
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [negotiationProduct, setNegotiationProduct] = useState(null);
 
-  // Filtered Products
+  // Auth modal
+  const [authModalConfig, setAuthModalConfig] = useState({ isOpen: false, initialMode: 'login' });
+
+  // Toggle favorite
+  const handleToggleFavorite = (productId) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+  };
+
+  // Filtered Products Logic
   const filteredProducts = useMemo(() => {
     return products.filter(prod => {
-      const matchCat = selectedCategory === 'all' || prod.categoryId === selectedCategory;
-      const matchWilaya = selectedWilaya === 'all' || prod.wilaya.toLowerCase() === selectedWilaya.toLowerCase();
-      const matchSearch =
-        !searchTerm.trim() ||
-        prod.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (prod.nameAr && prod.nameAr.includes(searchTerm)) ||
-        (prod.description && prod.description.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      return matchCat && matchWilaya && matchSearch;
+      // Category match
+      if (selectedCategory !== 'all' && prod.categoryId !== selectedCategory) {
+        return false;
+      }
+      // Wilaya match
+      if (wilayaFilter.trim()) {
+        const wLow = wilayaFilter.toLowerCase();
+        const matchW = prod.wilaya?.toLowerCase().includes(wLow) || prod.location?.toLowerCase().includes(wLow);
+        if (!matchW) return false;
+      }
+      // Search term
+      if (searchTerm.trim()) {
+        const sLow = searchTerm.toLowerCase();
+        const matchName = prod.name?.toLowerCase().includes(sLow) || (prod.nameAr && prod.nameAr.includes(sLow));
+        const matchDesc = prod.description?.toLowerCase().includes(sLow);
+        const matchLoc = prod.location?.toLowerCase().includes(sLow);
+        if (!matchName && !matchDesc && !matchLoc) return false;
+      }
+      // Advanced Filters
+      if (advancedFilters) {
+        if (advancedFilters.condition && advancedFilters.condition !== 'all') {
+          if (prod.condition !== advancedFilters.condition) return false;
+        }
+        if (advancedFilters.material && advancedFilters.material !== 'all') {
+          if (!prod.material || !prod.material.toLowerCase().includes(advancedFilters.material.toLowerCase())) {
+            return false;
+          }
+        }
+        if (advancedFilters.isElectronicsOnly && prod.categoryId !== 'cat_electronics') {
+          return false;
+        }
+        if (advancedFilters.hasGuarantee && !prod.verifiedSeller) {
+          return false;
+        }
+        if (advancedFilters.searchQuery && !prod.name.toLowerCase().includes(advancedFilters.searchQuery.toLowerCase())) {
+          return false;
+        }
+      }
+      return true;
     });
-  }, [products, selectedCategory, selectedWilaya, searchTerm]);
+  }, [products, selectedCategory, wilayaFilter, searchTerm, advancedFilters]);
 
-  // Filtered Stores
-  const filteredStores = useMemo(() => {
-    return stores.filter(st => {
-      const matchWilaya = selectedWilaya === 'all' || st.wilaya.toLowerCase() === selectedWilaya.toLowerCase();
-      const matchSearch =
-        !searchTerm.trim() ||
-        st.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        st.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-      return matchWilaya && matchSearch;
-    });
-  }, [stores, selectedWilaya, searchTerm]);
-
+  // Total cart count
   const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  // Selected store for current selected product
+  const currentStore = useMemo(() => {
+    if (!selectedProduct) return stores[0];
+    return stores.find(s => s.id === selectedProduct.storeId) || stores[0];
+  }, [selectedProduct, stores]);
+
   return (
-    <div className="app-container">
-      {/* Navbar */}
-      <Header
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        cartCount={totalCartCount}
-        onOpenCart={() => setIsCartOpen(true)}
-        lang={lang}
-        setLang={setLang}
-        theme={theme}
-        setTheme={setTheme}
-        onOpenAiSearch={() => setIsAiSearchOpen(true)}
-        t={t}
-      />
+    <div className="app-viewport" data-theme={theme} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
+      <div className="main-scroll-content">
+        {/* Top Header matching screenshot */}
+        <Header
+          lang={lang}
+          setLang={setLang}
+          theme={theme}
+          setTheme={setTheme}
+          cartCount={totalCartCount}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenAiSearch={() => setIsAiSearchOpen(true)}
+          onOpenPublish={() => setIsPublishModalOpen(true)}
+          onOpenLocalConnect={() => setActiveTab('local_connect')}
+          onOpenTrustPortal={() => setIsTrustPortalOpen(true)}
+          onOpenEstimator={() => setIsEstimatorOpen(true)}
+          onOpenFilter={() => setIsFilterOpen(true)}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          wilayaFilter={wilayaFilter}
+          setWilayaFilter={setWilayaFilter}
+          currentUser={currentUser}
+          t={t}
+        />
 
-      {/* Main Content Area */}
-      <main>
-        {/* Search & Wilayas Bar */}
-        <div className="search-container" style={{ marginTop: '1.5rem' }}>
-          <div className="search-bar">
-            <Search size={19} color="var(--text-muted)" />
-            <input
-              type="text"
-              className="search-input"
-              placeholder={t.searchPlaceholder}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <select
-              className="wilaya-select"
-              value={selectedWilaya}
-              onChange={(e) => setSelectedWilaya(e.target.value)}
-            >
-              <option value="all">📍 {t.filterAllWilayas}</option>
-              {WILAYAS.map(w => (
-                <option key={w.code} value={w.name}>
-                  {w.code} - {w.name} ({w.nameAr})
-                </option>
-              ))}
-            </select>
-            <button
-              className="ai-search-btn"
-              onClick={() => setIsAiSearchOpen(true)}
-              title={t.cameraSearchTitle}
-            >
-              <Camera size={15} />
-              <span>IA Photo</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Categories Bar */}
-        <div className="section-wrap" style={{ marginBottom: '1.5rem' }}>
-          <CategoryBar
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-            lang={lang}
-          />
-        </div>
-
-        {/* Home Tab */}
+        {/* View Switching based on bottom tab */}
         {activeTab === 'home' && (
-          <>
-            <HeroBanner
+          <main>
+            {/* 1. Categories Row matching screenshot */}
+            <CategoryBar
+              selectedCategory={selectedCategory}
+              onSelectCategory={setSelectedCategory}
               lang={lang}
-              onExploreStores={() => setActiveTab('stores')}
-              onExploreCatalog={() => setActiveTab('catalog')}
               t={t}
             />
 
-            {/* Featured Stores */}
-            <section className="section-wrap">
-              <div className="section-head">
-                <h2 className="section-title">
-                  <Store size={22} color="var(--primary)" />
-                  <span>{t.navStores}</span>
+            {/* 2. Recent lines / Product Grid matching screenshot */}
+            <section className="recent-lines-section">
+              <div className="section-label-row">
+                <h2 className="section-label">
+                  {lang === 'ar' ? 'أحدث الإعلانات' : 'Recent lines'}
                 </h2>
-                <button
-                  className="nav-item"
-                  onClick={() => setActiveTab('stores')}
-                  style={{ color: 'var(--primary)', fontWeight: '700' }}
+                <span
+                  className="section-link"
+                  onClick={() => setIsFilterOpen(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                 >
-                  Voir tout ({stores.length}) →
-                </button>
+                  <SlidersHorizontal size={14} />
+                  <span>{lang === 'ar' ? 'تصفية' : 'Filtres'}</span>
+                </span>
               </div>
-              <div className="stores-grid">
-                {filteredStores.slice(0, 3).map(store => (
-                  <StoreCard
-                    key={store.id}
-                    store={store}
-                    onSelectStore={(id) => {
-                      setSearchTerm(store.name);
-                      setActiveTab('catalog');
+
+              {filteredProducts.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', background: 'var(--surface)', borderRadius: '18px', border: '1px dashed var(--border-light)' }}>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.8rem' }}>
+                    Aucun objet ne correspond à votre recherche.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setWilayaFilter('');
+                      setSelectedCategory('all');
+                      setAdvancedFilters(null);
                     }}
-                    t={t}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* Featured Products */}
-            <section className="section-wrap">
-              <div className="section-head">
-                <h2 className="section-title">
-                  <Sparkles size={22} color="var(--accent)" />
-                  <span>Nouveautés & Offres Populaires</span>
-                </h2>
-                <button
-                  className="nav-item"
-                  onClick={() => setActiveTab('catalog')}
-                  style={{ color: 'var(--primary)', fontWeight: '700' }}
-                >
-                  Tout afficher ({products.length}) →
-                </button>
-              </div>
-              <div className="products-grid">
-                {filteredProducts.slice(0, 6).map(prod => {
-                  const store = stores.find(s => s.id === prod.storeId);
-                  return (
+                    style={{ background: 'var(--orange-action)', color: '#fff', border: 'none', padding: '0.5rem 1rem', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                </div>
+              ) : (
+                <div className="recent-lines-grid">
+                  {filteredProducts.map((prod) => (
                     <ProductCard
                       key={prod.id}
                       product={prod}
-                      store={store}
-                      onSelectProduct={setSelectedProduct}
-                      onAddToCart={addToCart}
+                      onSelect={(p) => setSelectedProduct(p)}
+                      isFavorite={favorites.has(prod.id)}
+                      onToggleFavorite={handleToggleFavorite}
                       lang={lang}
                       t={t}
                     />
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
             </section>
-          </>
+
+            {/* 3. Collections du Moment matching screenshot */}
+            <CollectionsBanner
+              onSelectCollection={(colId) => {
+                if (colId === 'col_artisanat') setSelectedCategory('cat_artisanat');
+                else if (colId === 'col_eco') setSelectedCategory('cat_furniture');
+                else setSelectedCategory('all');
+              }}
+              lang={lang}
+              t={t}
+            />
+          </main>
         )}
 
-        {/* Stores Tab */}
-        {activeTab === 'stores' && (
-          <section className="section-wrap">
-            <div className="section-head">
-              <h2 className="section-title">
-                <Store size={22} color="var(--primary)" />
-                <span>{t.navStores} ({filteredStores.length})</span>
-              </h2>
-            </div>
-            <div className="stores-grid">
-              {filteredStores.map(store => (
-                <StoreCard
-                  key={store.id}
-                  store={store}
-                  onSelectStore={() => {
-                    setSearchTerm(store.name);
-                    setActiveTab('catalog');
-                  }}
-                  t={t}
-                />
-              ))}
-            </div>
-          </section>
+        {/* Local-Connect Map View */}
+        {activeTab === 'local_connect' && (
+          <LocalConnectView
+            products={products}
+            stores={stores}
+            isOpen={true}
+            onClose={() => setActiveTab('home')}
+            onSelectProduct={(p) => setSelectedProduct(p)}
+            lang={lang}
+            t={t}
+          />
         )}
 
-        {/* Catalog Tab */}
-        {activeTab === 'catalog' && (
-          <section className="section-wrap">
-            <div className="section-head">
-              <h2 className="section-title">
-                <Package size={22} color="var(--primary)" />
-                <span>{t.navCatalog} ({filteredProducts.length})</span>
-              </h2>
-            </div>
-            {filteredProducts.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
-                <p>Aucun produit ne correspond à votre recherche.</p>
-              </div>
-            ) : (
-              <div className="products-grid">
-                {filteredProducts.map(prod => {
-                  const store = stores.find(s => s.id === prod.storeId);
-                  return (
-                    <ProductCard
-                      key={prod.id}
-                      product={prod}
-                      store={store}
-                      onSelectProduct={setSelectedProduct}
-                      onAddToCart={addToCart}
-                      lang={lang}
-                      t={t}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </section>
+        {/* Messages / Negotiation tab */}
+        {activeTab === 'messages' && (
+          <NegotiationChatModal
+            product={selectedProduct || products[0]}
+            store={currentStore}
+            isOpen={true}
+            onClose={() => setActiveTab('home')}
+            currentUser={currentUser}
+            lang={lang}
+            t={t}
+          />
         )}
 
-        {/* Tracking Tab */}
-        {activeTab === 'tracking' && (
-          <section className="section-wrap" style={{ maxWidth: '640px' }}>
-            <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-              <OrderTrackingModal
-                isOpen={true}
-                onClose={() => setActiveTab('home')}
-                orders={orders}
-                lang={lang}
-                t={t}
-              />
-            </div>
-          </section>
+        {/* User Profile tab */}
+        {activeTab === 'profile' && (
+          <UserProfileTab
+            currentUser={currentUser}
+            onOpenAuth={(mode) => setAuthModalConfig({ isOpen: true, initialMode: mode })}
+            onLogout={logout}
+            onOpenDashboard={() => setIsDashboardOpen(true)}
+            onOpenTracking={() => setIsTrackingOpen(true)}
+            onOpenTrustPortal={() => setIsTrustPortalOpen(true)}
+            stores={stores}
+            lang={lang}
+            t={t}
+          />
         )}
+      </div>
 
-        {/* Dashboard Tab */}
-        {activeTab === 'dashboard' && (
-          <section className="section-wrap" style={{ maxWidth: '720px' }}>
-            <div style={{ background: 'var(--surface)', padding: '2rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
-              <StoreDashboardModal
-                isOpen={true}
-                onClose={() => setActiveTab('home')}
-                store={stores[0]}
-                products={products}
-                onAddProduct={addProduct}
-                onDeleteProduct={deleteProduct}
-                lang={lang}
-                t={t}
-              />
-            </div>
-          </section>
-        )}
-      </main>
+      {/* Floating "Vendre (+)" Orange Button matching screenshot */}
+      <button
+        className="btn-vendre-floating"
+        onClick={() => setIsPublishModalOpen(true)}
+        aria-label="Vendre ou publier une annonce"
+      >
+        <Plus size={20} />
+        <span>Vendre (+)</span>
+      </button>
 
-      {/* Modals */}
-      <ProductModal
-        product={selectedProduct}
-        store={stores.find(s => s.id === selectedProduct?.storeId)}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={addToCart}
+      {/* Bottom Navigation Bar matching screenshot */}
+      <BottomNavBar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        unreadMessages={1}
         lang={lang}
         t={t}
       />
 
+      {/* MODALS */}
+
+      {/* 1. Listing Insight Modal */}
+      <ListingInsightModal
+        product={selectedProduct}
+        store={currentStore}
+        isOpen={!!selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        isFavorite={selectedProduct ? favorites.has(selectedProduct.id) : false}
+        onToggleFavorite={handleToggleFavorite}
+        onAddToCart={(prod) => {
+          addToCart(prod, 1);
+          setIsCartOpen(true);
+        }}
+        onOpenNegotiation={(prod) => {
+          setNegotiationProduct(prod);
+        }}
+        onOpenTrustPortal={() => setIsTrustPortalOpen(true)}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 2. Trust & Safety Portal Modal */}
+      <TrustSafetyPortal
+        isOpen={isTrustPortalOpen}
+        onClose={() => setIsTrustPortalOpen(false)}
+        store={currentStore}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 3. Value Estimator Modal */}
+      <ValueEstimatorModal
+        isOpen={isEstimatorOpen}
+        onClose={() => setIsEstimatorOpen(false)}
+        initialItem={selectedProduct || products[1]} // TV LED 50" default as in screenshot
+        lang={lang}
+        t={t}
+      />
+
+      {/* 4. Advanced Filter Modal */}
+      <AdvancedFilterModal
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        currentFilters={advancedFilters}
+        onApplyFilters={(filters) => setAdvancedFilters(filters)}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 5. Negotiation Chat Modal for a specific item */}
+      {negotiationProduct && (
+        <NegotiationChatModal
+          product={negotiationProduct}
+          store={currentStore}
+          isOpen={true}
+          onClose={() => setNegotiationProduct(null)}
+          currentUser={currentUser}
+          lang={lang}
+          t={t}
+        />
+      )}
+
+      {/* 6. Publish / Vendre (+) Modal */}
+      <PublishModal
+        isOpen={isPublishModalOpen || activeTab === 'publish'}
+        onClose={() => {
+          setIsPublishModalOpen(false);
+          if (activeTab === 'publish') setActiveTab('home');
+        }}
+        onPublishSuccess={(newProd) => {
+          addProduct(newProd);
+        }}
+        currentUser={currentUser}
+        onOpenAuth={(mode) => setAuthModalConfig({ isOpen: true, initialMode: mode })}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 7. Shopping Cart Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cart={cart}
-        onUpdateQty={updateQuantity}
+        onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         onClearCart={clearCart}
         onCreateOrder={createOrder}
+        currentUser={currentUser}
         t={t}
       />
 
-      <CameraAiSearchModal
-        isOpen={isAiSearchOpen}
-        onClose={() => setIsAiSearchOpen(false)}
-        onSelectCategory={setSelectedCategory}
-        setSearchTerm={setSearchTerm}
+      {/* 8. Auth Modal (Store Registration & User Account) */}
+      <AuthModal
+        isOpen={authModalConfig.isOpen}
+        initialTab={authModalConfig.initialMode}
+        onClose={() => setAuthModalConfig({ isOpen: false, initialMode: 'login' })}
+        onLogin={login}
+        onRegisterCustomer={registerCustomer}
+        onRegisterStore={registerStore}
         lang={lang}
         t={t}
       />
 
-      {/* Footer */}
-      <Footer lang={lang} t={t} />
+      {/* 9. AI Camera Search Modal */}
+      <CameraAiSearchModal
+        isOpen={isAiSearchOpen}
+        onClose={() => setIsAiSearchOpen(false)}
+        onProductFound={(prod) => {
+          setSelectedProduct(prod);
+          setIsAiSearchOpen(false);
+        }}
+        t={t}
+      />
+
+      {/* 10. Store Dashboard Modal */}
+      <StoreDashboardModal
+        isOpen={isDashboardOpen}
+        onClose={() => setIsDashboardOpen(false)}
+        store={stores[0]}
+        products={products}
+        orders={orders}
+        onAddProduct={addProduct}
+        onDeleteProduct={deleteProduct}
+        t={t}
+      />
+
+      {/* 11. Order Tracking Modal */}
+      <OrderTrackingModal
+        isOpen={isTrackingOpen}
+        onClose={() => setIsTrackingOpen(false)}
+        orders={orders}
+        stores={stores}
+        t={t}
+      />
     </div>
   );
 }
