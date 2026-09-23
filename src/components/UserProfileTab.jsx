@@ -124,7 +124,7 @@ export function UserProfileTab({
         </div>
       ) : (
         /* Not logged in: Show Registration / Login Cards */
-        <div style={{ display: 'flex', flexDirect: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Card 1: Création Compte Magasin (50 annonces gratuites) */}
           <div style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fff7ed 100%)', borderRadius: '22px', padding: '1.25rem', border: '1px solid #fed7aa', boxShadow: 'var(--shadow-card)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.4rem' }}>
@@ -136,14 +136,14 @@ export function UserProfileTab({
                   {isAr ? 'فتح حساب متجر وفترينة معتمدة' : 'Créer un Compte Magasin'}
                 </h3>
                 <span style={{ fontSize: '0.75rem', fontWeight: '800', background: 'var(--orange-action)', color: '#fff', padding: '0.15rem 0.5rem', borderRadius: '9999px' }}>
-                  50 Annonces Gratuites
+                  {isAr ? '50 إعلان مجاني' : '50 Annonces Gratuites'}
                 </span>
               </div>
             </div>
 
             <p style={{ fontSize: '0.8rem', color: '#7c2d12', margin: '0.75rem 0 1rem', lineHeight: '1.4' }}>
               {isAr
-                ? 'انضم إلى شبكة التجار المعتمدين في الجزائر، احصل على شارة التحقق بالفيديو ولوحة تحكم متكاملة لإدارة مبيعاتك.'
+                ? 'انضم إلى شبكة التجار المعتمدين في الجزائر، احصل على شارة التحقق بالفيديو ولوحة تحكم متكاملة لإدارة مبيعاتك ونشر حتى 50 إعلاناً مجاناً.'
                 : 'Bénéficiez du badge officiel "Vérifié par Vidéo", publiez jusqu à 50 produits sans frais et recevez les commandes directement.'}
             </p>
 
@@ -164,30 +164,60 @@ export function UserProfileTab({
               </div>
               <div>
                 <h3 style={{ fontSize: '1.05rem', fontWeight: '800' }}>
-                  {isAr ? 'حساب مستخدم / مشتري' : 'Compte Acheteur & Vendeur'}
+                  {isAr ? 'حساب زبون ومشتري' : 'Compte Acheteur & Vendeur'}
                 </h3>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  Commandes en 1 clic & messagerie
+                  {isAr ? 'طلب مباشر وتتبع في 58 ولاية' : 'Commandes en 1 clic & messagerie'}
                 </span>
               </div>
             </div>
 
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.75rem 0 1rem' }}>
-              Suivez vos colis dans les 58 Wilayas et négociez directement avec les vendeurs grâce au chatbot IA.
+              {isAr
+                ? 'سجل حساب زبون لطلب المنتجات مباشرة من المحلات المعتمدة وتتبع طلبيتك عبر كافة ولايات الوطن.'
+                : 'Suivez vos colis dans les 58 Wilayas et commandez directement auprès des magasins vérifiés.'}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
               <button
                 onClick={() => onOpenAuth('register_client')}
-                style={{ padding: '0.75rem', background: 'var(--surface-alt)', border: '1px solid var(--border-light)', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '800', cursor: 'pointer' }}
+                style={{
+                  padding: '0.75rem',
+                  background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '0.85rem',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem'
+                }}
               >
-                Créer un compte
+                <UserPlus size={15} />
+                <span>{isAr ? 'إنشاء حساب زبون' : 'Créer un compte'}</span>
               </button>
               <button
                 onClick={() => onOpenAuth('login')}
-                style={{ padding: '0.75rem', background: 'var(--navy-header)', color: '#ffffff', border: 'none', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '800', cursor: 'pointer' }}
+                style={{
+                  padding: '0.75rem',
+                  background: 'var(--navy-header)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '0.85rem',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem'
+                }}
               >
-                Se connecter
+                <LogIn size={15} />
+                <span>{isAr ? 'تسجيل الدخول' : 'Se connecter'}</span>
               </button>
             </div>
           </div>
