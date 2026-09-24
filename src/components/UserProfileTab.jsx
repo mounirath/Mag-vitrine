@@ -17,7 +17,9 @@ import {
   Package,
   CheckCircle2,
   XCircle,
-  Award
+  Award,
+  FileText,
+  Database
 } from 'lucide-react';
 
 export function UserProfileTab({
@@ -33,6 +35,8 @@ export function UserProfileTab({
   onOpenStoreReviews,
   onOpenCustomerSeriousness,
   getCustomerReliability,
+  onOpenTerms,
+  onOpenSupabaseConfig,
   onLogout,
   lang,
   t
@@ -319,7 +323,45 @@ export function UserProfileTab({
                   </div>
                 </div>
               </div>
-              <ChevronRight size={18} color="var(--text-muted)" />
+              <ChevronRight size={18} color="var(--text-muted)" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
+            </button>
+
+            {/* شروط وأحكام استخدام التطبيق */}
+            <button
+              onClick={onOpenTerms}
+              style={{ width: '100%', padding: '1rem', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: isAr ? 'right' : 'left', color: 'var(--text-main)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <FileText size={20} color="var(--primary)" />
+                <div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: '800' }}>
+                    {isAr ? 'شروط وأحكام استخدام التطبيق' : 'Conditions Générales d’Utilisation'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    {isAr ? 'حقوق المستخدم، المعاملات، وإخلاء المسؤولية' : 'Droits, litiges, règles de vente et achats'}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={18} color="var(--text-muted)" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
+            </button>
+
+            {/* إعدادات قاعدة البيانات السحابية Supabase */}
+            <button
+              onClick={onOpenSupabaseConfig}
+              style={{ width: '100%', padding: '1rem', background: 'rgba(16, 185, 129, 0.05)', border: 'none', borderBottom: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', textAlign: isAr ? 'right' : 'left', color: 'var(--text-main)' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <Database size={20} color="#059669" />
+                <div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#065f46' }}>
+                    {isAr ? 'خادم وقاعدة بيانات Supabase (PostgreSQL)' : 'Serveur & Base Supabase Cloud'}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#047857' }}>
+                    {isAr ? 'ربط مفاتيح API، مزامنة البيانات، ومخطط SQL' : 'Connexion clés API, sync des tables & schéma SQL'}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={18} color="#059669" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
             </button>
 
             <button
@@ -441,6 +483,74 @@ export function UserProfileTab({
               </button>
             </div>
           </div>
+
+          {/* Terms & Conditions card for guests */}
+          <button
+            onClick={onOpenTerms}
+            style={{
+              background: 'var(--surface)',
+              borderRadius: '16px',
+              padding: '0.9rem 1.15rem',
+              border: '1px solid var(--border-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              color: 'var(--text-main)',
+              textAlign: isAr ? 'right' : 'left',
+              width: '100%',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(2, 132, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <FileText size={18} color="var(--primary)" />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.88rem', fontWeight: '800' }}>
+                  {isAr ? 'شروط وأحكام استخدام التطبيق' : 'Conditions Générales d’Utilisation'}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  {isAr ? 'إقرأ الشروط المنظمة لعمليات البيع والشراء والطلبيات' : 'Règles régissant les ventes, achats et livraisons'}
+                </div>
+              </div>
+            </div>
+            <ChevronRight size={18} color="var(--text-muted)" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
+          </button>
+
+          {/* Supabase backend config card for guests */}
+          <button
+            onClick={onOpenSupabaseConfig}
+            style={{
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.04) 100%)',
+              borderRadius: '16px',
+              padding: '0.9rem 1.15rem',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              color: 'var(--text-main)',
+              textAlign: isAr ? 'right' : 'left',
+              width: '100%',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Database size={18} color="#059669" />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#065f46' }}>
+                  {isAr ? 'إعداد خادم Supabase السحابي' : 'Configuration Backend Supabase'}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#047857' }}>
+                  {isAr ? 'ربط مفاتيح المشروع وتشغيل قاعدة بيانات PostgreSQL' : 'Clés de projet, synchronisation et schéma SQL'}
+                </div>
+              </div>
+            </div>
+            <ChevronRight size={18} color="#059669" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
+          </button>
         </div>
       )}
     </div>

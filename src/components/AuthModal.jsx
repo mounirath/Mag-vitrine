@@ -25,6 +25,7 @@ export function AuthModal({
   onLogin,
   onRegisterCustomer,
   onRegisterStore,
+  onOpenTerms,
   lang,
   t
 }) {
@@ -669,6 +670,19 @@ export function AuthModal({
                   </button>
                 </div>
               </div>
+
+              {onOpenTerms && (
+                <div style={{ textAlign: 'center', fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '0.65rem' }}>
+                  <span>{isAr ? 'باستخدامك للتطبيق، فإنك توافق على ' : 'En utilisant l’application, vous acceptez les '}</span>
+                  <button
+                    type="button"
+                    onClick={onOpenTerms}
+                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.74rem', padding: 0 }}
+                  >
+                    {isAr ? 'شروط وأحكام الاستخدام' : 'Conditions Générales'}
+                  </button>
+                </div>
+              )}
             </form>
           )}
 
@@ -911,6 +925,19 @@ export function AuthModal({
                   {isAr ? 'دخول لحساب هنا' : 'Connectez-vous ici'}
                 </button>
               </div>
+
+              {onOpenTerms && (
+                <div style={{ textAlign: 'center', fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                  <span>{isAr ? 'بإنشائك للحساب فإنك تؤكد موافقتك على ' : 'En créant votre compte, vous acceptez les '}</span>
+                  <button
+                    type="button"
+                    onClick={onOpenTerms}
+                    style={{ background: 'none', border: 'none', color: '#0284c7', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.74rem', padding: 0 }}
+                  >
+                    {isAr ? 'شروط وأحكام استخدام التطبيق' : 'Conditions Générales d’Utilisation'}
+                  </button>
+                </div>
+              )}
             </form>
           )}
 
@@ -1244,6 +1271,19 @@ export function AuthModal({
                   {isAr ? 'دخول لحساب التاجر هنا' : 'Connectez-vous ici'}
                 </button>
               </div>
+
+              {onOpenTerms && (
+                <div style={{ textAlign: 'center', fontSize: '0.74rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                  <span>{isAr ? 'تسجيل المتجر يخضع لـ ' : 'L’inscription magasin est régie par les '}</span>
+                  <button
+                    type="button"
+                    onClick={onOpenTerms}
+                    style={{ background: 'none', border: 'none', color: '#d97706', fontWeight: '800', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.74rem', padding: 0 }}
+                  >
+                    {isAr ? 'شروط وأحكام المحلات التجارية' : 'Conditions Générales Commerçants'}
+                  </button>
+                </div>
+              )}
             </form>
           )}
         </div>

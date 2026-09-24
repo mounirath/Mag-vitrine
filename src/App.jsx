@@ -17,6 +17,9 @@ import { UserProfileTab } from './components/UserProfileTab';
 import { CartDrawer } from './components/CartDrawer';
 import { AuthModal } from './components/AuthModal';
 import { CameraAiSearchModal } from './components/CameraAiSearchModal';
+import { TermsAndConditionsModal } from './components/TermsAndConditionsModal';
+import { SupabaseConfigModal } from './components/SupabaseConfigModal';
+import { isSupabaseConfigured } from './lib/supabase';
 import { StoreDashboardModal } from './components/StoreDashboardModal';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
 import { RateStoreModal } from './components/RateStoreModal';
@@ -87,6 +90,12 @@ export default function App() {
 
   // Auth modal
   const [authModalConfig, setAuthModalConfig] = useState({ isOpen: false, initialMode: 'login' });
+
+  // Terms and conditions modal (شروط وأحكام استخدام التطبيق)
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+
+  // Supabase Backend Settings & Migration modal
+  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
   // Toggle favorite
   const handleToggleFavorite = (productId) => {
@@ -183,6 +192,8 @@ export default function App() {
           currentUser={currentUser}
           onOpenAuth={(mode) => setAuthModalConfig({ isOpen: true, initialMode: mode || 'login' })}
           onLogout={logout}
+          onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
+          isSupabaseConfigured={isSupabaseConfigured()}
           t={t}
         />
 
@@ -309,6 +320,8 @@ export default function App() {
             onOpenStoreReviews={(targetStore) => setStoreReviewsConfig({ isOpen: true, store: targetStore })}
             onOpenCustomerSeriousness={(targetCustomer, rel) => setCustomerSeriousnessConfig({ isOpen: true, customer: targetCustomer, reliability: rel })}
             getCustomerReliability={getCustomerReliability}
+            onOpenTerms={() => setIsTermsOpen(true)}
+            onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
             stores={stores}
             orders={orders}
             lang={lang}
@@ -442,18 +455,25 @@ export default function App() {
         onLogin={login}
         onRegisterCustomer={registerCustomer}
         onRegisterStore={registerStore}
+        onOpenTerms={() => setIsTermsOpen(true)}
         lang={lang}
         t={t}
       />
 
-      {/* 9. AI Camera Search Modal */}
+      {/* 9. AI Camera & Semantic Search Modal */}
       <CameraAiSearchModal
         isOpen={isAiSearchOpen}
         onClose={() => setIsAiSearchOpen(false)}
+        products={products}
+        stores={stores}
         onProductFound={(prod) => {
           setSelectedProduct(prod);
           setIsAiSearchOpen(false);
         }}
+        onSelectCategory={setSelectedCategory}
+        setSearchTerm={setSearchTerm}
+        setWilayaFilter={setWilayaFilter}
+        lang={lang}
         t={t}
       />
 
@@ -531,6 +551,26 @@ export default function App() {
           setStoreReviewsConfig({ isOpen: false, store: null });
           setRateStoreConfig({ isOpen: true, store: targetStore, order: null });
         }}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 16. Terms and Conditions of Use Modal (شروط وأحكام استخدام التطبيق) */}
+      <TermsAndConditionsModal
+        isOpen={isTermsOpen}
+        onClose={() => setIsTermsOpen(false)}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 17. Supabase Cloud Backend & Database Modal */}
+      <SupabaseConfigModal
+        isOpen={isSupabaseModalOpen}
+        onClose={() => setIsSupabaseModalOpen(false)}
+        stores={stores}
+        products={products}
+        storeReviews={storeReviews}
+        customerRatings={customerRatings}
         lang={lang}
         t={t}
       />
