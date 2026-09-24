@@ -27,6 +27,7 @@ export function UserProfileTab({
   stores = [],
   orders = [],
   onOpenDashboard,
+  onOpenAdminDashboard,
   onOpenTracking,
   onOpenTrustPortal,
   onOpenAuth,
@@ -364,6 +365,52 @@ export function UserProfileTab({
               <ChevronRight size={18} color="#059669" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
             </button>
 
+            {/* لوحة تحكم المشرف العام Supabase Super-Admin */}
+            {onOpenAdminDashboard && (
+              <button
+                onClick={onOpenAdminDashboard}
+                style={{
+                  width: '100%',
+                  padding: '1rem',
+                  background: 'linear-gradient(135deg, rgba(6, 78, 59, 0.08) 0%, rgba(16, 185, 129, 0.12) 100%)',
+                  border: 'none',
+                  borderBottom: '1px solid var(--border-light)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  textAlign: isAr ? 'right' : 'left',
+                  color: 'var(--text-main)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '10px',
+                      background: '#064e3b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <ShieldCheck size={20} color="#34d399" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: '900', color: '#064e3b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <span>{isAr ? 'لوحة تحكم المشرف الأعلى (Super-Admin)' : 'Console Super-Admin Supabase'}</span>
+                      <span style={{ fontSize: '0.65rem', background: '#10b981', color: '#064e3b', padding: '0.1rem 0.4rem', borderRadius: '4px', fontWeight: '900' }}>58 WILAYAS</span>
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: '#047857' }}>
+                      {isAr ? 'إدارة المتاجر، السلع، الطلبيات، الفهرس الوطني ومكافحة الرفض' : 'Supervision globale : magasins, stocks, commandes, anti-retour'}
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight size={18} color="#059669" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
+              </button>
+            )}
+
             <button
               onClick={onLogout}
               style={{ width: '100%', padding: '1rem', background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', color: '#ef4444', textAlign: isAr ? 'right' : 'left' }}
@@ -551,6 +598,43 @@ export function UserProfileTab({
             </div>
             <ChevronRight size={18} color="#059669" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
           </button>
+
+          {/* Super-Admin Dashboard card for quick access */}
+          {onOpenAdminDashboard && (
+            <button
+              onClick={onOpenAdminDashboard}
+              style={{
+                background: 'linear-gradient(135deg, rgba(6, 78, 59, 0.12) 0%, rgba(16, 185, 129, 0.18) 100%)',
+                borderRadius: '16px',
+                padding: '0.9rem 1.15rem',
+                border: '1.5px solid rgba(16, 185, 129, 0.45)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: 'pointer',
+                color: 'var(--text-main)',
+                textAlign: isAr ? 'right' : 'left',
+                width: '100%',
+                boxShadow: '0 4px 14px rgba(6, 78, 59, 0.08)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#064e3b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ShieldCheck size={20} color="#34d399" />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: '900', color: '#064e3b', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span>{isAr ? 'لوحة تحكم المشرف الأعلى (Super-Admin)' : 'Console Super-Admin Supabase'}</span>
+                    <span style={{ fontSize: '0.62rem', background: '#10b981', color: '#064e3b', padding: '0.1rem 0.35rem', borderRadius: '4px', fontWeight: '900' }}>ADMIN</span>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#047857' }}>
+                    {isAr ? 'إشراف كامل على 58 ولاية، المتاجر، السلع والطلبيات' : 'Supervision globale : 58 Wilayas, commandes et catalogues'}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={18} color="#064e3b" style={{ transform: isAr ? 'rotate(180deg)' : 'none' }} />
+            </button>
+          )}
         </div>
       )}
     </div>

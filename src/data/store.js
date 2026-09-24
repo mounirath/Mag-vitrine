@@ -447,77 +447,91 @@ export function useAppStore() {
   }, [currentUser]);
 
   // Load and sync data from Supabase if configured
-  useEffect(() => {
-    async function loadSupabaseData() {
-      if (!isSupabaseConfigured()) return;
-      try {
-        const [prodRes, storeRes, orderRes, revRes, ratRes] = await Promise.allSettled([
-          productsApi.getAll(),
-          storesApi.getAll(),
-          ordersApi.getAll(),
-          storeReviewsApi.getAll(),
-          customerRatingsApi.getAll()
-        ]);
+  const loadSupabaseData = async () => {
+    if (!isSupabaseConfigured()) return { success: false, message: 'Supabase non configuré' };
+    try {
+      const [prodRes, storeRes, orderRes, revRes, ratRes] = await Promise.allSettled([
+        productsApi.getAll(),
+        storesApi.getAll(),
+        ordersApi.getAll(),
+        storeReviewsApi.getAll(),
+        customerRatingsApi.getAll()
+      ]);
 
-        if (prodRes.status === 'fulfilled' && prodRes.value?.data?.length > 0) {
-          const normalizedProds = prodRes.value.data.map(p => ({
-            id: p.id,
-            storeId: p.store_id || p.storeId,
-            categoryId: p.category_id || p.categoryId,
-            name: p.name,
-            nameAr: p.name_ar || p.nameAr,
-            description: p.description,
-            price: Number(p.price),
-            oldPrice: p.old_price ? Number(p.old_price) : p.oldPrice,
-            isPromotion: p.is_promotion !== undefined ? p.is_promotion : p.isPromotion,
-            discountPercent: p.discount_percent || p.discountPercent || 0,
-            condition: p.condition || 'new',
-            stockStatus: p.stock_status || p.stockStatus || 'IN_STOCK',
-            deliveryAvailable: p.delivery_available !== undefined ? p.delivery_available : true,
-            imageUrl: p.image_url || p.imageUrl,
-            images: p.images || [],
-            location: p.location || '',
-            wilaya: p.wilaya || ''
-          }));
-          setProducts(normalizedProds);
-        }
+      let loadedCounts = { products: 0, stores: 0, orders: 0, reviews: 0, ratings: 0 };
 
-        if (storeRes.status === 'fulfilled' && storeRes.value?.data?.length > 0) {
-          const normalizedStores = storeRes.value.data.map(s => ({
-            id: s.id,
-            name: s.name,
-            logo: s.logo,
-            banner: s.banner,
-            description: s.description,
-            managerName: s.manager_name || s.managerName,
-            phone: s.phone,
-            whatsapp: s.whatsapp,
-            address: s.address,
-            wilaya: s.wilaya,
-            commune: s.commune,
-            rating: s.rating || 5.0,
-            reviewsCount: s.reviews_count || 1,
-            badge: s.badge || 'Vérifié'
-          }));
-          setStores(normalizedStores);
-        }
-
-        if (orderRes.status === 'fulfilled' && orderRes.value?.data?.length > 0) {
-          setOrders(orderRes.value.data);
-        }
-
-        if (revRes.status === 'fulfilled' && revRes.value?.data?.length > 0) {
-          setStoreReviews(revRes.value.data);
-        }
-
-        if (ratRes.status === 'fulfilled' && ratRes.value?.data?.length > 0) {
-          setCustomerRatings(ratRes.value.data);
-        }
-      } catch (err) {
-        console.warn('[Supabase Auto-Sync]: Falling back to local data', err);
+      if (prodRes.status === 'fulfilled' && prodRes.value?.data?.length > 0) {
+        const normalizedProds = prodRes.value.data.map(p => ({
+          id: p.id,
+          storeId: p.store_id || p.storeId,
+          categoryId: p.category_id || p.categoryId,
+          name: p.name,
+          nameAr: p.name_ar || p.nameAr,
+          description: p.description,
+          price: Number(p.price),
+          oldPrice: p.old_price ? Number(p.old_price) : p.oldPrice,
+          isPromotion: p.is_promotion !== undefined ? p.is_promotion : p.isPromotion,
+          discountPercent: p.discount_percent || p.discountPercent || 0,
+          condition: p.condition || 'new',
+          stockStatus: p.stock_status || p.stockStatus || 'IN_STOCK',
+          deliveryAvailable: p.delivery_available !== undefined ? p.delivery_available : true,
+          imageUrl: p.image_url || p.imageUrl,
+          images: p.images || [],
+          location: p.location || '',
+          wilaya: p.wilaya || '',
+          status: p.status || 'ACTIVE'
+        }));
+        setProducts(normalizedProds);
+        loadedCounts.products = normalizedProds.length;
       }
-    }
 
+      if (storeRes.status === 'fulfilled' && storeRes.value?.data?.length > 0) {
+        const normalizedStores = storeRes.value.data.map(s => ({
+          id: s.id,
+          name: s.name,
+          slug: s.slug,
+          logo: s.logo,
+          banner: s.banner,
+          description: s.description,
+          managerName: s.manager_name || s.managerName,
+          phone: s.phone,
+          whatsapp: s.whatsapp,
+          address: s.address,
+          wilaya: s.wilaya,
+          commune: s.commune,
+          rating: s.rating || 5.0,
+          reviewsCount: s.reviews_count || 1,
+          badge: s.badge || 'Vérifié',
+          status: s.status || 'active',
+          quotaMax: s.quota_max || s.quotaMax || 50
+        }));
+        setStores(normalizedStores);
+        loadedCounts.stores = normalizedStores.length;
+      }
+
+      if (orderRes.status === 'fulfilled' && orderRes.value?.data?.length > 0) {
+        setOrders(orderRes.value.data);
+        loadedCounts.orders = orderRes.value.data.length;
+      }
+
+      if (revRes.status === 'fulfilled' && revRes.value?.data?.length > 0) {
+        setStoreReviews(revRes.value.data);
+        loadedCounts.reviews = revRes.value.data.length;
+      }
+
+      if (ratRes.status === 'fulfilled' && ratRes.value?.data?.length > 0) {
+        setCustomerRatings(ratRes.value.data);
+        loadedCounts.ratings = ratRes.value.data.length;
+      }
+
+      return { success: true, counts: loadedCounts };
+    } catch (err) {
+      console.warn('[Supabase Auto-Sync]: Falling back to local data', err);
+      return { success: false, error: err };
+    }
+  };
+
+  useEffect(() => {
     loadSupabaseData();
 
     const handleConfigChange = () => {
@@ -564,10 +578,60 @@ export function useAppStore() {
     }
   };
 
+  const updateProduct = (prodId, updates) => {
+    setProducts(prev => prev.map(p => p.id === prodId ? { ...p, ...updates } : p));
+    if (isSupabaseConfigured()) {
+      productsApi.update(prodId, updates).catch(e => console.warn('Supabase product update failed:', e));
+    }
+  };
+
   const deleteProduct = (prodId) => {
     setProducts(prev => prev.filter(p => p.id !== prodId));
     if (isSupabaseConfigured()) {
       productsApi.delete(prodId).catch(e => console.warn('Supabase product delete failed:', e));
+    }
+  };
+
+  const updateStore = (storeId, updates) => {
+    setStores(prev => prev.map(s => s.id === storeId ? { ...s, ...updates } : s));
+    if (isSupabaseConfigured()) {
+      storesApi.update(storeId, updates).catch(e => console.warn('Supabase store update failed:', e));
+    }
+  };
+
+  const deleteStore = (storeId) => {
+    setStores(prev => prev.filter(s => s.id !== storeId));
+    setProducts(prev => prev.filter(p => p.storeId !== storeId));
+    if (isSupabaseConfigured()) {
+      storesApi.delete(storeId).catch(e => console.warn('Supabase store delete failed:', e));
+    }
+  };
+
+  const updateOrder = (orderId, updates) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...updates } : o));
+    if (isSupabaseConfigured()) {
+      ordersApi.update(orderId, updates).catch(e => console.warn('Supabase order update failed:', e));
+    }
+  };
+
+  const deleteOrder = (orderId) => {
+    setOrders(prev => prev.filter(o => o.id !== orderId));
+    if (isSupabaseConfigured()) {
+      ordersApi.delete(orderId).catch(e => console.warn('Supabase order delete failed:', e));
+    }
+  };
+
+  const deleteStoreReview = (reviewId) => {
+    setStoreReviews(prev => prev.filter(r => r.id !== reviewId));
+    if (isSupabaseConfigured()) {
+      storeReviewsApi.delete(reviewId).catch(e => console.warn('Supabase review delete failed:', e));
+    }
+  };
+
+  const deleteCustomerRating = (ratingId) => {
+    setCustomerRatings(prev => prev.filter(r => r.id !== ratingId));
+    if (isSupabaseConfigured()) {
+      customerRatingsApi.delete(ratingId).catch(e => console.warn('Supabase rating delete failed:', e));
     }
   };
 
@@ -870,8 +934,16 @@ export function useAppStore() {
     updateQuantity,
     clearCart,
     addProduct,
+    updateProduct,
     deleteProduct,
+    updateStore,
+    deleteStore,
     createOrder,
+    updateOrder,
+    deleteOrder,
+    deleteStoreReview,
+    deleteCustomerRating,
+    refreshFromSupabase: loadSupabaseData,
     t
   };
 }

@@ -6,7 +6,7 @@ const STORAGE_KEYS = {
 };
 
 // Initial environment check
-const ENV_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const ENV_URL = import.meta.env.VITE_SUPABASE_URL || 'https://fsfuixqartszwmqnywoi.supabase.co';
 const ENV_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export function getStoredSupabaseConfig() {
@@ -18,6 +18,8 @@ export function getStoredSupabaseConfig() {
 
   return { url: url.trim(), key: key.trim(), isCustom: Boolean(customUrl && customKey) };
 }
+
+export const getSupabaseConfig = getStoredSupabaseConfig;
 
 let supabaseInstance = null;
 let currentConfigKey = '';

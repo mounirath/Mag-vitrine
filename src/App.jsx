@@ -19,6 +19,7 @@ import { AuthModal } from './components/AuthModal';
 import { CameraAiSearchModal } from './components/CameraAiSearchModal';
 import { TermsAndConditionsModal } from './components/TermsAndConditionsModal';
 import { SupabaseConfigModal } from './components/SupabaseConfigModal';
+import { SupabaseAdminDashboardModal } from './components/SupabaseAdminDashboardModal';
 import { isSupabaseConfigured } from './lib/supabase';
 import { StoreDashboardModal } from './components/StoreDashboardModal';
 import { OrderTrackingModal } from './components/OrderTrackingModal';
@@ -40,6 +41,7 @@ export default function App() {
     orders,
     storeReviews,
     customerRatings,
+    users,
     rateStore,
     rateCustomer,
     getCustomerReliability,
@@ -48,8 +50,16 @@ export default function App() {
     updateQuantity,
     clearCart,
     addProduct,
+    updateProduct,
     deleteProduct,
+    updateStore,
+    deleteStore,
     createOrder,
+    updateOrder,
+    deleteOrder,
+    deleteStoreReview,
+    deleteCustomerRating,
+    refreshFromSupabase,
     currentUser,
     registerCustomer,
     registerStore,
@@ -96,6 +106,9 @@ export default function App() {
 
   // Supabase Backend Settings & Migration modal
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
+
+  // Supabase Super-Admin Dashboard modal
+  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
 
   // Toggle favorite
   const handleToggleFavorite = (productId) => {
@@ -193,6 +206,7 @@ export default function App() {
           onOpenAuth={(mode) => setAuthModalConfig({ isOpen: true, initialMode: mode || 'login' })}
           onLogout={logout}
           onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
+          onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
           isSupabaseConfigured={isSupabaseConfigured()}
           t={t}
         />
@@ -322,6 +336,7 @@ export default function App() {
             getCustomerReliability={getCustomerReliability}
             onOpenTerms={() => setIsTermsOpen(true)}
             onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
+            onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
             stores={stores}
             orders={orders}
             lang={lang}
@@ -571,6 +586,31 @@ export default function App() {
         products={products}
         storeReviews={storeReviews}
         customerRatings={customerRatings}
+        lang={lang}
+        t={t}
+      />
+
+      {/* 18. Supabase Super-Admin Dashboard Modal */}
+      <SupabaseAdminDashboardModal
+        isOpen={isAdminDashboardOpen}
+        onClose={() => setIsAdminDashboardOpen(false)}
+        stores={stores}
+        products={products}
+        orders={orders}
+        storeReviews={storeReviews}
+        customerRatings={customerRatings}
+        users={users}
+        currentUser={currentUser}
+        onUpdateStore={updateStore}
+        onDeleteStore={deleteStore}
+        onUpdateProduct={updateProduct}
+        onDeleteProduct={deleteProduct}
+        onUpdateOrder={updateOrder}
+        onDeleteOrder={deleteOrder}
+        onDeleteStoreReview={deleteStoreReview}
+        onDeleteCustomerRating={deleteCustomerRating}
+        onRefreshFromSupabase={refreshFromSupabase}
+        onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
         lang={lang}
         t={t}
       />

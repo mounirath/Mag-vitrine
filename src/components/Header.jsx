@@ -24,6 +24,7 @@ export function Header({
   onOpenAuth,
   onLogout,
   onOpenSupabaseConfig,
+  onOpenAdminDashboard,
   isSupabaseConfigured = false,
   t
 }) {
@@ -109,6 +110,39 @@ export function Header({
                     background: isSupabaseConfigured ? '#10b981' : '#f59e0b'
                   }}
                 />
+              </button>
+            )}
+
+            {/* Supabase Super-Admin Dashboard */}
+            {onOpenAdminDashboard && (
+              <button
+                className="header-icon-pill"
+                onClick={onOpenAdminDashboard}
+                title={isAr ? 'لوحة تحكم المشرف الأعلى Supabase' : 'Console Super-Admin Supabase'}
+                aria-label="Admin Dashboard"
+                style={{
+                  position: 'relative',
+                  background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.35))',
+                  border: '1px solid rgba(52, 211, 153, 0.6)'
+                }}
+              >
+                <ShieldCheck size={17} color="#34d399" />
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '-3px',
+                    right: '-3px',
+                    background: '#10b981',
+                    color: '#064e3b',
+                    fontSize: '0.55rem',
+                    fontWeight: '900',
+                    padding: '0 3px',
+                    borderRadius: '4px',
+                    lineHeight: '1.2'
+                  }}
+                >
+                  ADM
+                </span>
               </button>
             )}
 

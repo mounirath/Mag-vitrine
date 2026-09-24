@@ -168,6 +168,18 @@ export const storesApi = {
       .single();
 
     return { data, error };
+  },
+
+  async delete(id) {
+    const supabase = getSupabase();
+    if (!supabase) return { error: new Error('Supabase non configuré') };
+
+    const { error } = await supabase
+      .from('stores')
+      .delete()
+      .eq('id', id);
+
+    return { error };
   }
 };
 
@@ -217,6 +229,20 @@ export const ordersApi = {
     return { data, error };
   },
 
+  async update(orderId, updates) {
+    const supabase = getSupabase();
+    if (!supabase) return { data: null, error: new Error('Supabase non configuré') };
+
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', orderId)
+      .select()
+      .single();
+
+    return { data, error };
+  },
+
   async updateStatus(orderId, status) {
     const supabase = getSupabase();
     if (!supabase) return { data: null, error: new Error('Supabase non configuré') };
@@ -229,6 +255,18 @@ export const ordersApi = {
       .single();
 
     return { data, error };
+  },
+
+  async delete(orderId) {
+    const supabase = getSupabase();
+    if (!supabase) return { error: new Error('Supabase non configuré') };
+
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', orderId);
+
+    return { error };
   }
 };
 
@@ -269,6 +307,18 @@ export const storeReviewsApi = {
       .single();
 
     return { data, error };
+  },
+
+  async delete(id) {
+    const supabase = getSupabase();
+    if (!supabase) return { error: new Error('Supabase non configuré') };
+
+    const { error } = await supabase
+      .from('store_reviews')
+      .delete()
+      .eq('id', id);
+
+    return { error };
   }
 };
 
@@ -309,6 +359,85 @@ export const customerRatingsApi = {
       .single();
 
     return { data, error };
+  },
+
+  async delete(id) {
+    const supabase = getSupabase();
+    if (!supabase) return { error: new Error('Supabase non configuré') };
+
+    const { error } = await supabase
+      .from('customer_ratings')
+      .delete()
+      .eq('id', id);
+
+    return { error };
+  }
+};
+
+export const profilesApi = {
+  async getAll() {
+    const supabase = getSupabase();
+    if (!supabase) return { data: null, error: new Error('Supabase non configuré') };
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    return { data, error };
+  },
+
+  async updateRole(id, role) {
+    const supabase = getSupabase();
+    if (!supabase) return { data: null, error: new Error('Supabase non configuré') };
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ role, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+
+    return { data, error };
+  }
+};
+
+export const adminApi = {
+  async getTableStats() {
+    const supabase = getSupabase();
+    if (!supabase) return { data: null, error: new Error('Supabase non configuré') };
+
+    try {
+      const [
+        storesCount,
+        productsCount,
+        ordersCount,
+        reviewsCount,
+        ratingsCount,
+        profilesCount
+      ] = await Promise.all([
+        supabase.from('stores').select('*', { count: 'exact', head: true }),
+        supabase.from('products').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('*', { count: 'exact', head: true }),
+        supabase.from('store_reviews').select('*', { count: 'exact', head: true }),
+        supabase.from('customer_ratings').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true })
+      ]);
+
+      return {
+        data: {
+          stores: storesCount.count || 0,
+          products: productsCount.count || 0,
+          orders: ordersCount.count || 0,
+          reviews: reviewsCount.count || 0,
+          ratings: ratingsCount.count || 0,
+          profiles: profilesCount.count || 0
+        },
+        error: null
+      };
+    } catch (err) {
+      return { data: null, error: err };
+    }
   }
 };
 
