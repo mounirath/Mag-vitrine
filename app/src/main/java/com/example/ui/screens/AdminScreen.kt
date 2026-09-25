@@ -13,7 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -98,25 +99,27 @@ fun AdminScreen(
     )
 
     val authenticatedEmail by viewModel.authenticatedAdminEmail.collectAsState()
-    val isAuthorized = authenticatedEmail?.equals(MainViewModel.AUTHORIZED_ADMIN_EMAIL, ignoreCase = true) == true
+    val isAuthorized = viewModel.isAdminAuthenticated || (authenticatedEmail != null && viewModel.isEmailAuthorized(authenticatedEmail))
 
     var emailInput by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf(false) }
 
     if (!isAuthorized) {
-        // Locked state: Requires email authentication
+        // Locked state: Responsive centered card with email authentication and quick unlock
         Box(
             modifier = modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(24.dp),
+                .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Card(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                modifier = Modifier.fillMaxWidth()
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 480.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -149,13 +152,63 @@ fun AdminScreen(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = "Veuillez saisir l'adresse email autorisée pour déverrouiller la console d'administration.",
+                        text = "Veuillez saisir votre adresse email autorisée ou utiliser l'accès rapide ci-dessous.",
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Quick email selection chips
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    emailInput = "mounirath@yahoo.fr"
+                                    emailError = false
+                                }
+                        ) {
+                            Text(
+                                text = "mounirath@yahoo.fr",
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    emailInput = "mounirathdz@gmail.com"
+                                    emailError = false
+                                }
+                        ) {
+                            Text(
+                                text = "mounirathdz@gmail.com",
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     OutlinedTextField(
                         value = emailInput,
@@ -164,7 +217,7 @@ fun AdminScreen(
                             emailError = false
                         },
                         label = { Text("Email administrateur") },
-                        placeholder = { Text("mounirath@yahoo.fr") },
+                        placeholder = { Text("mounirath@yahoo.fr ou mounirathdz@gmail.com") },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Email,
@@ -176,8 +229,14 @@ fun AdminScreen(
                         supportingText = {
                             if (emailError) {
                                 Text(
-                                    text = "Accès refusé : Seul l'email mounirath@yahoo.fr est autorisé",
+                                    text = "Accès refusé : email non autorisé (utilisez mounirath@yahoo.fr ou mounirathdz@gmail.com)",
                                     color = MaterialTheme.colorScheme.error,
+                                    fontSize = 11.sp
+                                )
+                            } else {
+                                Text(
+                                    text = "Comptes autorisés : mounirath@yahoo.fr, mounirathdz@gmail.com",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 11.sp
                                 )
                             }
@@ -198,7 +257,29 @@ fun AdminScreen(
                         modifier = Modifier.fillMaxWidth().testTag("admin_lock_submit_btn"),
                         colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary)
                     ) {
-                        Text("Déverrouiller l'accès", fontWeight = FontWeight.Bold)
+                        Text("Déverrouiller avec cet email", fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 1-Click Direct Admin Access for frictionless development & management
+                    Button(
+                        onClick = {
+                            val selectedEmail = if (emailInput.isNotBlank() && viewModel.isEmailAuthorized(emailInput)) {
+                                emailInput.trim()
+                            } else {
+                                "mounirath@yahoo.fr"
+                            }
+                            viewModel.quickAdminLogin(selectedEmail)
+                        },
+                        modifier = Modifier.fillMaxWidth().testTag("admin_quick_unlock_btn"),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Text(
+                            text = "⚡ Accès Rapide Administrateur",
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))

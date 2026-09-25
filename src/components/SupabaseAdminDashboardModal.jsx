@@ -36,8 +36,10 @@ import {
   Plus
 } from 'lucide-react';
 import { WILAYAS, CATEGORIES } from '../data/initialData';
-import { isSupabaseConfigured, getSupabaseConfig } from '../lib/supabase';
+import { isSupabaseConfigured, getSupabaseConfig, saveSupabaseConfig } from '../lib/supabase';
 import { adminApi, syncLocalDataToSupabase } from '../services/supabaseService';
+import { SupabaseDataGrid } from './SupabaseDataGrid';
+import { supabaseConnectionService } from '../services/supabaseConnectionService';
 
 export function SupabaseAdminDashboardModal({
   isOpen,
@@ -102,10 +104,33 @@ export function SupabaseAdminDashboardModal({
   const supabaseConfig = getSupabaseConfig();
   const configured = isSupabaseConfigured();
 
+  // Quick Anon Key connect state
+  const [quickAnonKey, setQuickAnonKey] = useState('');
+  const [isConnectingQuick, setIsConnectingQuick] = useState(false);
+
   // Show temporary toast message
   const triggerFeedback = (msg, type = 'success') => {
     setFeedbackMessage({ msg, type });
     setTimeout(() => setFeedbackMessage(null), 4000);
+  };
+
+  const handleQuickConnect = async () => {
+    if (!quickAnonKey.trim()) return;
+    setIsConnectingQuick(true);
+    try {
+      const diag = await supabaseConnectionService.runDiagnostic(supabaseConfig.url, quickAnonKey.trim());
+      if (diag.isConnected) {
+        saveSupabaseConfig(supabaseConfig.url, quickAnonKey.trim());
+        triggerFeedback(isAr ? 'تم ربط Supabase بنجاح!' : 'Connexion Supabase établie avec succès !', 'success');
+        setQuickAnonKey('');
+        if (onRefreshFromSupabase) onRefreshFromSupabase();
+      } else {
+        triggerFeedback(diag.message || (isAr ? 'فشل الاتصال' : 'Échec de connexion'), 'error');
+      }
+    } catch (e) {
+      triggerFeedback(e.message, 'error');
+    }
+    setIsConnectingQuick(false);
   };
 
   // Fetch live stats from Supabase if connected
@@ -546,6 +571,32 @@ CREATE POLICY "Public orders" ON public.orders FOR ALL USING (true);`;
               </button>
             )}
 
+            {/* Direct URL Route Button */}
+            <button
+              onClick={() => {
+                const url = window.location.origin + '/admin';
+                navigator.clipboard?.writeText(url);
+                triggerFeedback(isAr ? 'تم نسخ الرابط المباشر: ' + url : 'Lien direct copié : ' + url);
+              }}
+              style={{
+                background: 'rgba(16, 185, 129, 0.25)',
+                color: '#34d399',
+                border: '1px solid rgba(52, 211, 153, 0.4)',
+                borderRadius: '10px',
+                padding: '0.45rem 0.75rem',
+                fontSize: '0.75rem',
+                fontWeight: '800',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+              title={isAr ? 'نسخ الرابط المباشر /admin' : 'Copier le lien direct /admin'}
+            >
+              <ExternalLink size={13} />
+              <span>Route /admin</span>
+            </button>
+
             {/* Close */}
             <button
               onClick={onClose}
@@ -567,6 +618,70 @@ CREATE POLICY "Public orders" ON public.orders FOR ALL USING (true);`;
             </button>
           </div>
         </div>
+
+        {/* DIAGNOSTIC BANNER IF SUPABASE NOT FULLY CONNECTED */}
+        {!configured && (
+          <div
+            style={{
+              padding: '0.85rem 1.4rem',
+              background: '#fef3c7',
+              borderBottom: '1px solid #fde68a',
+              color: '#92400e',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              fontSize: '0.82rem'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <AlertTriangle size={18} color="#d97706" />
+              <div>
+                <strong style={{ display: 'block', fontSize: '0.85rem' }}>
+                  {isAr ? 'لماذا لا يتصل التطبيق بقاعدة البيانات (Supabase)؟' : 'Pourquoi la connexion Supabase échoue-t-elle ?'}
+                </strong>
+                <span style={{ fontSize: '0.76rem', color: '#78350f' }}>
+                  {isAr
+                    ? 'المفتاح VITE_SUPABASE_ANON_KEY مفقود في .env. ألصق مفتاح Anon من إعدادات مشروع Supabase لتفعيل المزامنة المباشرة:'
+                    : 'La clé VITE_SUPABASE_ANON_KEY est absente du fichier .env. Collez votre clé Anon pour activer la synchronisation live :'}
+                </span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+              <input
+                type="password"
+                placeholder={isAr ? 'ألصق المفتاح Anon هنا...' : 'Collez la clé Anon ici...'}
+                value={quickAnonKey}
+                onChange={(e) => setQuickAnonKey(e.target.value)}
+                style={{
+                  padding: '0.45rem 0.75rem',
+                  borderRadius: '8px',
+                  border: '1px solid #d97706',
+                  fontSize: '0.75rem',
+                  width: '210px',
+                  background: '#ffffff'
+                }}
+              />
+              <button
+                onClick={handleQuickConnect}
+                disabled={isConnectingQuick || !quickAnonKey.trim()}
+                style={{
+                  background: '#064e3b',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.45rem 0.85rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '800',
+                  cursor: isConnectingQuick || !quickAnonKey.trim() ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isConnectingQuick ? (isAr ? 'جاري الفحص...' : 'Test...') : (isAr ? 'ربط فوري' : 'Connecter')}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* FEEDBACK TOAST BANNER */}
         {feedbackMessage && (
@@ -610,6 +725,7 @@ CREATE POLICY "Public orders" ON public.orders FOR ALL USING (true);`;
         >
           {[
             { id: 'kpis', labelAr: 'الإحصائيات والأرقام', labelFr: 'Vue d\'Ensemble', icon: TrendingUp },
+            { id: 'datagrid', labelAr: 'جدول البيانات التفاعلي (Data Grid)', labelFr: 'Data Grid Supabase', icon: Layers },
             { id: 'stores', labelAr: `المتاجر (${stores.length})`, labelFr: `Vitrines (${stores.length})`, icon: Store },
             { id: 'products', labelAr: `المنتجات (${products.length})`, labelFr: `Articles (${products.length})`, icon: Package },
             { id: 'orders', labelAr: `الطلبيات (${orders.length})`, labelFr: `Commandes (${orders.length})`, icon: ShoppingCart },
@@ -651,6 +767,21 @@ CREATE POLICY "Public orders" ON public.orders FOR ALL USING (true);`;
         {/* 3. TAB CONTENTS (SCROLLABLE BODY)                              */}
         {/* ============================================================== */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', background: 'var(--bg-app)' }}>
+          {/* TAB: DATA GRID INTERACTIF SUPABASE (PRODUITS & COMMANDES) */}
+          {activeTab === 'datagrid' && (
+            <SupabaseDataGrid
+              localProducts={products}
+              localOrders={orders}
+              stores={stores}
+              onUpdateProduct={onUpdateProduct}
+              onDeleteProduct={onDeleteProduct}
+              onUpdateOrder={onUpdateOrder}
+              onDeleteOrder={onDeleteOrder}
+              lang={lang}
+              t={t}
+            />
+          )}
+
           {/* ------------------------------------------------------------ */}
           {/* TAB 1: KPIS & OVERVIEW                                       */}
           {/* ------------------------------------------------------------ */}

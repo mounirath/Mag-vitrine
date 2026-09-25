@@ -399,20 +399,20 @@ fun ProductDetailScreen(
 
                         if (product.brand.isNotBlank()) {
                             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                                Text("Marque : ", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(100.dp))
-                                Text(product.brand, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("Marque : ", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(0.35f))
+                                Text(product.brand, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(0.65f))
                             }
                         }
                         if (product.model.isNotBlank()) {
                             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                                Text("Modèle : ", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(100.dp))
-                                Text(product.model, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("Modèle : ", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(0.35f))
+                                Text(product.model, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(0.65f))
                             }
                         }
                         if (product.reference.isNotBlank()) {
                             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                                Text("Référence : ", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(100.dp))
-                                Text(product.reference, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                                Text("Référence : ", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(0.35f))
+                                Text(product.reference, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(0.65f))
                             }
                         }
                     }

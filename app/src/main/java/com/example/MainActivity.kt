@@ -14,6 +14,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -24,6 +25,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -31,6 +33,8 @@ import com.example.data.model.AppLanguage
 import com.example.data.model.UserRole
 import com.example.ui.components.AppBottomNav
 import com.example.ui.components.AppHeader
+import com.example.ui.components.NegotiationChatDialog
+import com.example.ui.components.PublishProductDialog
 import com.example.ui.screens.AdminScreen
 import com.example.ui.screens.AuthScreen
 import com.example.ui.screens.CameraAiSearchScreen
@@ -96,17 +100,17 @@ fun MagVitrineApp(viewModel: MainViewModel) {
         Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
-                AppHeader(
-                    currentLanguage = language,
-                    onLanguageSelected = { viewModel.setLanguage(it) },
-                    userRole = userRole,
-                    onRoleSelected = { viewModel.setUserRole(it) },
-                    cartItemCount = cartCount,
-                    onCartClicked = { viewModel.navigateTo(Screen.Cart) },
-                    onBackClicked = if (currentScreen !is Screen.Home) {
-                        { viewModel.navigateBack() }
-                    } else null
-                )
+                if (currentScreen !is Screen.Home) {
+                    AppHeader(
+                        currentLanguage = language,
+                        onLanguageSelected = { viewModel.setLanguage(it) },
+                        userRole = userRole,
+                        onRoleSelected = { viewModel.setUserRole(it) },
+                        cartItemCount = cartCount,
+                        onCartClicked = { viewModel.navigateTo(Screen.Cart) },
+                        onBackClicked = { viewModel.navigateBack() }
+                    )
+                }
             },
             bottomBar = {
                 AppBottomNav(
@@ -114,7 +118,10 @@ fun MagVitrineApp(viewModel: MainViewModel) {
                     onNavigate = { viewModel.navigateTo(it) },
                     cartCount = cartCount,
                     userRole = userRole,
-                    currentLanguage = language
+                    currentLanguage = language,
+                    onOpenPublish = {
+                        viewModel.isPublishModalOpen.value = true
+                    }
                 )
             },
             modifier = Modifier.fillMaxSize()
@@ -123,24 +130,42 @@ fun MagVitrineApp(viewModel: MainViewModel) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.TopCenter
             ) {
-                AnimatedContent(
-                    targetState = currentScreen,
-                    transitionSpec = { fadeIn() togetherWith fadeOut() },
-                    label = "screen_transition"
-                ) { target ->
-                    when (target) {
-                        is Screen.Home -> HomeScreen(viewModel = viewModel)
-                        is Screen.Catalog -> CatalogScreen(viewModel = viewModel)
-                        is Screen.ProductDetail -> ProductDetailScreen(productId = target.productId, viewModel = viewModel)
-                        is Screen.StoreVitrine -> StoreVitrineScreen(storeId = target.storeId, viewModel = viewModel)
-                        is Screen.CameraAiSearch -> CameraAiSearchScreen(viewModel = viewModel)
-                        is Screen.MapView -> StoresMapScreen(viewModel = viewModel)
-                        is Screen.Cart -> CartAndCheckoutScreen(viewModel = viewModel)
-                        is Screen.OrderTracking -> OrderTrackingScreen(orderId = target.orderId, viewModel = viewModel)
-                        is Screen.StoreDashboard -> StoreDashboardScreen(viewModel = viewModel)
-                        is Screen.AdminPanel -> AdminScreen(viewModel = viewModel)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 840.dp)
+                ) {
+                    AnimatedContent(
+                        targetState = currentScreen,
+                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                        label = "screen_transition"
+                    ) { target ->
+                        when (target) {
+                            is Screen.Home -> HomeScreen(viewModel = viewModel)
+                            is Screen.Catalog -> CatalogScreen(viewModel = viewModel)
+                            is Screen.ProductDetail -> ProductDetailScreen(productId = target.productId, viewModel = viewModel)
+                            is Screen.StoreVitrine -> StoreVitrineScreen(storeId = target.storeId, viewModel = viewModel)
+                            is Screen.CameraAiSearch -> CameraAiSearchScreen(viewModel = viewModel)
+                            is Screen.MapView -> StoresMapScreen(viewModel = viewModel)
+                            is Screen.Cart -> CartAndCheckoutScreen(viewModel = viewModel)
+                            is Screen.OrderTracking -> OrderTrackingScreen(orderId = target.orderId, viewModel = viewModel)
+                            is Screen.StoreDashboard -> StoreDashboardScreen(viewModel = viewModel)
+                            is Screen.AdminPanel -> AdminScreen(viewModel = viewModel)
+                            is Screen.Messages -> {
+                                NegotiationChatDialog(isOpen = true, onDismiss = { viewModel.navigateTo(Screen.Home) })
+                                HomeScreen(viewModel = viewModel)
+                            }
+                            is Screen.Profile -> {
+                                when (userRole) {
+                                    UserRole.STORE -> StoreDashboardScreen(viewModel = viewModel)
+                                    UserRole.ADMIN -> AdminScreen(viewModel = viewModel)
+                                    UserRole.CUSTOMER -> AuthScreen(viewModel = viewModel)
+                                }
+                            }
+                        }
                     }
                 }
             }

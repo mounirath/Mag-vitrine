@@ -8,7 +8,8 @@ const ICON_MAP = {
   Shirt: Shirt,
   Wrench: Wrench,
   Layers: Layers,
-  Sparkles: Sparkles
+  Sparkles: Sparkles,
+  Sparkle: Sparkles
 };
 
 export function CategoryBar({ selectedCategory, onSelectCategory, lang, t }) {

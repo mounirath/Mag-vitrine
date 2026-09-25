@@ -1,13 +1,13 @@
 import React from 'react';
 import { Home, Search, PlusCircle, MessageSquare, User, MapPin } from 'lucide-react';
 
-export function BottomNavBar({ activeTab, setActiveTab, unreadMessages = 1, isStoreUser = false, lang, t }) {
+export function BottomNavBar({ activeTab, setActiveTab, unreadMessages = 1, isStoreUser = false, onOpenPublish, lang, t }) {
   const isAr = lang === 'ar';
 
   return (
     <nav
       className="bottom-nav-bar"
-      style={{ gridTemplateColumns: isStoreUser ? 'repeat(5, 1fr)' : 'repeat(4, 1fr)' }}
+      style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}
     >
       {/* 1. Home */}
       <button
@@ -29,17 +29,18 @@ export function BottomNavBar({ activeTab, setActiveTab, unreadMessages = 1, isSt
         <span>{isAr ? 'بحث وموقع' : 'Recherche'}</span>
       </button>
 
-      {/* 3. Publier (Visible ONLY for Store / Merchant) */}
-      {isStoreUser && (
-        <button
-          className={`bottom-nav-item ${activeTab === 'publish' ? 'active' : ''}`}
-          onClick={() => setActiveTab('publish')}
-          aria-label="Publier"
-        >
-          <PlusCircle size={24} color={activeTab === 'publish' ? 'var(--orange-action)' : 'currentColor'} />
-          <span>{isAr ? 'نشر إعلان' : 'Publier'}</span>
-        </button>
-      )}
+      {/* 3. Publier / Vendre (+) matching Mockup */}
+      <button
+        className={`bottom-nav-item ${activeTab === 'publish' ? 'active' : ''}`}
+        onClick={() => {
+          if (onOpenPublish) onOpenPublish();
+          else setActiveTab('publish');
+        }}
+        aria-label="Publier"
+      >
+        <PlusCircle size={24} color={activeTab === 'publish' ? 'var(--orange-action)' : 'var(--orange-action)'} />
+        <span style={{ color: 'var(--orange-action)', fontWeight: '800' }}>{isAr ? 'نشر إعلان' : 'Publier'}</span>
+      </button>
 
       {/* 4. Messages */}
       <button
@@ -51,7 +52,7 @@ export function BottomNavBar({ activeTab, setActiveTab, unreadMessages = 1, isSt
         <MessageSquare size={22} color={activeTab === 'messages' ? 'var(--orange-action)' : 'currentColor'} />
         <span>{isAr ? 'رسائل' : 'Messages'}</span>
         {unreadMessages > 0 && (
-          <span style={{ position: 'absolute', top: '2px', right: '22px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--orange-action)' }} />
+          <span style={{ position: 'absolute', top: '2px', right: '16px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--orange-action)' }} />
         )}
       </button>
 

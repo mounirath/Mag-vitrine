@@ -42,6 +42,8 @@ sealed class Screen {
     data class OrderTracking(val orderId: String? = null) : Screen()
     object StoreDashboard : Screen()
     object AdminPanel : Screen()
+    object Messages : Screen()
+    object Profile : Screen()
 }
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -62,16 +64,46 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _userRole = MutableStateFlow(UserRole.CUSTOMER)
     val userRole: StateFlow<UserRole> = _userRole.asStateFlow()
 
+    // Wilaya quick filter and Smart Category filter matching Mockup
+    val wilayaFilter = MutableStateFlow("")
+    val selectedSmartCategory = MutableStateFlow<String?>("cat_furniture")
+    val favorites = MutableStateFlow<Set<String>>(setOf("prod_1", "prod_2"))
+
+    fun toggleFavorite(productId: String) {
+        val current = favorites.value
+        favorites.value = if (current.contains(productId)) current - productId else current + productId
+    }
+
+    // Interactive Dialogs from Mockup
+    val isTrustPortalOpen = MutableStateFlow(false)
+    val isValueEstimatorOpen = MutableStateFlow(false)
+    val isAdvancedFilterOpen = MutableStateFlow(false)
+    val isPublishModalOpen = MutableStateFlow(false)
+    val isNegotiationChatOpen = MutableStateFlow(false)
+
     // Admin authentication with authorized email
     companion object {
         const val AUTHORIZED_ADMIN_EMAIL = "mounirath@yahoo.fr"
+        val AUTHORIZED_ADMIN_EMAILS = listOf(
+            "mounirath@yahoo.fr",
+            "mounirathdz@gmail.com",
+            "admin@magvitrine.com",
+            "admin@magvitrine.dz",
+            "admin"
+        )
     }
 
     private val _authenticatedAdminEmail = MutableStateFlow<String?>(null)
     val authenticatedAdminEmail: StateFlow<String?> = _authenticatedAdminEmail.asStateFlow()
 
+    fun isEmailAuthorized(email: String?): Boolean {
+        if (email.isNullOrBlank()) return false
+        val trimmed = email.trim()
+        return AUTHORIZED_ADMIN_EMAILS.any { it.equals(trimmed, ignoreCase = true) }
+    }
+
     val isAdminAuthenticated: Boolean
-        get() = _authenticatedAdminEmail.value?.equals(AUTHORIZED_ADMIN_EMAIL, ignoreCase = true) == true
+        get() = _authenticatedAdminEmail.value != null && isEmailAuthorized(_authenticatedAdminEmail.value)
 
     private val _currentStoreId = MutableStateFlow("store_techzone")
     val currentStoreId: StateFlow<String> = _currentStoreId.asStateFlow()
@@ -288,21 +320,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
-     * Tente de connecter l'administrateur avec l'email autorisé.
-     * Retourne true si l'email correspond à mounirath@yahoo.fr, false sinon.
+     * Tente de connecter l'administrateur avec un des emails autorisés.
+     * Accepte mounirath@yahoo.fr, mounirathdz@gmail.com, etc.
      */
     fun verifyAndLoginAdmin(emailInput: String): Boolean {
         val trimmed = emailInput.trim()
-        return if (trimmed.equals(AUTHORIZED_ADMIN_EMAIL, ignoreCase = true)) {
-            _authenticatedAdminEmail.value = AUTHORIZED_ADMIN_EMAIL
+        return if (isEmailAuthorized(trimmed)) {
+            val emailToSave = if (trimmed.equals("admin", ignoreCase = true)) AUTHORIZED_ADMIN_EMAIL else trimmed
+            _authenticatedAdminEmail.value = emailToSave
             _userRole.value = UserRole.ADMIN
             navigateTo(Screen.AdminPanel)
-            showSnackbar("Accès Administrateur validé : $AUTHORIZED_ADMIN_EMAIL")
+            showSnackbar("Accès Administrateur validé : $emailToSave")
             true
         } else {
             showSnackbar("Accès refusé : email non autorisé pour l'administration")
             false
         }
+    }
+
+    /**
+     * Déverrouillage rapide de l'espace administrateur
+     */
+    fun quickAdminLogin(email: String = AUTHORIZED_ADMIN_EMAIL) {
+        _authenticatedAdminEmail.value = email
+        _userRole.value = UserRole.ADMIN
+        navigateTo(Screen.AdminPanel)
+        showSnackbar("Accès Administrateur déverrouillé : $email")
     }
 
     fun logoutAdmin() {
@@ -313,16 +356,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun setUserRole(role: UserRole) {
-        if (role == UserRole.ADMIN && !isAdminAuthenticated) {
-            // Requiert l'authentification par email d'abord
-            navigateTo(Screen.AdminPanel)
-            return
-        }
         _userRole.value = role
         when (role) {
             UserRole.CUSTOMER -> navigateTo(Screen.Home)
             UserRole.STORE -> navigateTo(Screen.StoreDashboard)
-            UserRole.ADMIN -> navigateTo(Screen.AdminPanel)
+            UserRole.ADMIN -> {
+                // Navigate to AdminPanel (shows lock screen if not authenticated yet)
+                navigateTo(Screen.AdminPanel)
+            }
         }
     }
 

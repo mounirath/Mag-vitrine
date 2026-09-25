@@ -17,6 +17,7 @@ import {
   Building
 } from 'lucide-react';
 import { WILAYAS } from '../data/initialData';
+import { authService } from '../services/authService';
 
 export function AuthModal({
   isOpen,

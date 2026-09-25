@@ -45,6 +45,121 @@ object LanguageManager {
     }
 
     private val STRINGS = mapOf(
+        "home" to mapOf(
+            AppLanguage.FR to "Accueil",
+            AppLanguage.AR to "الرئيسية",
+            AppLanguage.EN to "Home"
+        ),
+        "hero_title" to mapOf(
+            AppLanguage.FR to "Découvrez\n& Vendez",
+            AppLanguage.AR to "اكتشف\nوبع في\nالجزائر",
+            AppLanguage.EN to "Discover\n& Sell"
+        ),
+        "hero_search_hint" to mapOf(
+            AppLanguage.FR to "Rechercher un objet, une marque, un magasin...",
+            AppLanguage.AR to "ابحث عن أثاث، إلكترونيات، ملابس، سيارات...",
+            AppLanguage.EN to "Search furniture, tech, fashion..."
+        ),
+        "hero_wilaya_hint" to mapOf(
+            AppLanguage.FR to "Filtrer par Wilaya (Alger, Oran, Constantine...)",
+            AppLanguage.AR to "تصفية حسب الولاية أو المدينة (الجزائر، وهران...)",
+            AppLanguage.EN to "Filter by Wilaya or City"
+        ),
+        "smart_categories" to mapOf(
+            AppLanguage.FR to "Smart Categories",
+            AppLanguage.AR to "الأقسام الذكية",
+            AppLanguage.EN to "Smart Categories"
+        ),
+        "see_all" to mapOf(
+            AppLanguage.FR to "Voir tout",
+            AppLanguage.AR to "عرض الكل",
+            AppLanguage.EN to "See all"
+        ),
+        "recent_lines" to mapOf(
+            AppLanguage.FR to "Recent lines",
+            AppLanguage.AR to "أحدث الإعلانات",
+            AppLanguage.EN to "Recent lines"
+        ),
+        "local_connect" to mapOf(
+            AppLanguage.FR to "Recherche",
+            AppLanguage.AR to "بحث وموقع",
+            AppLanguage.EN to "Search & Map"
+        ),
+        "vendre_cta" to mapOf(
+            AppLanguage.FR to "Vendre (+)",
+            AppLanguage.AR to "نشر إعلان (+)",
+            AppLanguage.EN to "Sell (+)"
+        ),
+        "trust_portal" to mapOf(
+            AppLanguage.FR to "Confiance",
+            AppLanguage.AR to "بوابة الثقة",
+            AppLanguage.EN to "Trust Portal"
+        ),
+        "estimator" to mapOf(
+            AppLanguage.FR to "Estimateur",
+            AppLanguage.AR to "مقدّر القيمة",
+            AppLanguage.EN to "Estimator"
+        ),
+        "messages_tab" to mapOf(
+            AppLanguage.FR to "Messages",
+            AppLanguage.AR to "رسائل",
+            AppLanguage.EN to "Messages"
+        ),
+        "profile_tab" to mapOf(
+            AppLanguage.FR to "Profil",
+            AppLanguage.AR to "حسابي",
+            AppLanguage.EN to "Profile"
+        ),
+        "cat_furniture_label" to mapOf(
+            AppLanguage.FR to "Meubles &\nDécor",
+            AppLanguage.AR to "أثاث\nوديكور",
+            AppLanguage.EN to "Furniture"
+        ),
+        "cat_electronics_label" to mapOf(
+            AppLanguage.FR to "Électronique",
+            AppLanguage.AR to "إلكترونيات",
+            AppLanguage.EN to "Electronics"
+        ),
+        "cat_fashion_label" to mapOf(
+            AppLanguage.FR to "موضة وأزياء",
+            AppLanguage.AR to "موضة\nوأزياء",
+            AppLanguage.EN to "Fashion"
+        ),
+        "cat_parts_label" to mapOf(
+            AppLanguage.FR to "Pièces &\nRechanges",
+            AppLanguage.AR to "قطع غيار",
+            AppLanguage.EN to "Spare parts"
+        ),
+        "cat_artisanat_label" to mapOf(
+            AppLanguage.FR to "Artisanat\nLocal",
+            AppLanguage.AR to "صناعة\nتقليدية",
+            AppLanguage.EN to "Handmade"
+        ),
+        "cat_materials_label" to mapOf(
+            AppLanguage.FR to "مواد ولوازم",
+            AppLanguage.AR to "مواد\nولوازم",
+            AppLanguage.EN to "Materials"
+        ),
+        "map_view" to mapOf(
+            AppLanguage.FR to "Carte",
+            AppLanguage.AR to "الخريطة",
+            AppLanguage.EN to "Map"
+        ),
+        "tracking" to mapOf(
+            AppLanguage.FR to "Suivi",
+            AppLanguage.AR to "تتبع",
+            AppLanguage.EN to "Tracking"
+        ),
+        "my_store" to mapOf(
+            AppLanguage.FR to "Mon Magasin",
+            AppLanguage.AR to "متجري",
+            AppLanguage.EN to "My Store"
+        ),
+        "admin" to mapOf(
+            AppLanguage.FR to "Admin",
+            AppLanguage.AR to "لوحة الإدارة",
+            AppLanguage.EN to "Admin"
+        ),
         "search_hint" to mapOf(
             AppLanguage.FR to "Rechercher un produit, magasin, marque...",
             AppLanguage.AR to "ابحث عن منتج، متجر، علامة تجارية...",

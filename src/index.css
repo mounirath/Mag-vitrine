@@ -1,40 +1,44 @@
 :root {
-  --navy-header: #141f32;
-  --navy-dark: #0d1522;
-  --navy-accent: #1e2c45;
+  --navy-header: #0f172a;
+  --navy-dark: #0b1329;
+  --navy-accent: #1e293b;
+  --navy-gradient: linear-gradient(135deg, #0b1329 0%, #0f172a 100%);
+  --emerald-gradient: linear-gradient(135deg, #0b1329 0%, #0f172a 100%);
+  --emerald-accent: #10b981;
   --orange-action: #f59e0b;
   --orange-hover: #d97706;
-  --orange-gradient: linear-gradient(135deg, #f59e0b, #ea580c);
+  --orange-gradient: linear-gradient(135deg, #f59e0b, #d97706);
   --primary: #0284c7;
   --primary-dark: #0369a1;
-  --bg-app: #f4f6f9;
+  --primary-light: #38bdf8;
+  --bg-app: #f8fafc;
   --surface: #ffffff;
-  --surface-alt: #f8fafc;
+  --surface-alt: #f1f5f9;
   --text-main: #0f172a;
   --text-muted: #64748b;
   --border-light: #e2e8f0;
-  --badge-trust: #ede9fe;
-  --badge-trust-text: #6366f1;
-  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.06);
-  --shadow-hover: 0 8px 24px rgba(15, 23, 42, 0.12);
-  --shadow-floating: 0 10px 30px rgba(234, 88, 12, 0.35);
+  --badge-trust: #d1fae5;
+  --badge-trust-text: #065f46;
+  --shadow-card: 0 4px 16px rgba(15, 23, 42, 0.08);
+  --shadow-hover: 0 8px 24px rgba(15, 23, 42, 0.14);
+  --shadow-floating: 0 10px 30px rgba(245, 158, 11, 0.4);
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 24px;
 }
 
 [data-theme="dark"] {
-  --navy-header: #0b111e;
-  --navy-dark: #060a12;
-  --navy-accent: #141f32;
-  --bg-app: #090e17;
-  --surface: #111a2a;
-  --surface-alt: #162236;
+  --navy-header: #090f1d;
+  --navy-dark: #050811;
+  --navy-accent: #0f172a;
+  --bg-app: #0b111e;
+  --surface: #111827;
+  --surface-alt: #1f2937;
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --border-light: #1e2c42;
-  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --border-light: #1f2937;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
 }
 
 * {
@@ -110,14 +114,15 @@ button, input, select, textarea {
   gap: 0.35rem;
 }
 
-/* DEEP NAVY TOP HEADER ("Découvrez & Vendez") */
+/* SIGNATURE NAVY TOP HEADER ("Découvrez & Vendez") */
 .navy-top-header {
-  background-color: var(--navy-header);
+  background: linear-gradient(135deg, #0b1329 0%, #0f172a 100%);
   color: #ffffff;
   padding: 0.5rem 1.2rem 1.25rem;
   border-bottom-left-radius: 24px;
   border-bottom-right-radius: 24px;
-  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 8px 24px rgba(11, 19, 41, 0.45);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .navy-top-row {
@@ -125,19 +130,22 @@ button, input, select, textarea {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.75rem;
+  gap: 0.5rem;
 }
 
 .header-app-title {
-  font-size: 1.45rem;
+  font-size: clamp(1.05rem, 3.8vw, 1.45rem);
   font-weight: 800;
   letter-spacing: -0.5px;
   color: #ffffff;
+  line-height: 1.2;
 }
 
 .header-actions-group {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.35rem;
+  flex-shrink: 0;
 }
 
 .header-icon-pill {
@@ -278,17 +286,34 @@ button, input, select, textarea {
 }
 
 .pastel-categories-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.85rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pastel-categories-grid::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .pastel-categories-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    overflow-x: visible;
+  }
 }
 
 .pastel-category-card {
   background: var(--surface);
   border: 1px solid var(--border-light);
   border-radius: 18px;
-  padding: 0.75rem 0.4rem;
+  padding: 0.85rem 0.6rem;
+  min-width: 90px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -507,8 +532,19 @@ button, input, select, textarea {
   color: var(--text-muted);
   font-size: 0.7rem;
   font-weight: 700;
-  padding: 0.35rem 0;
+  padding: 0.35rem 0.15rem;
   transition: all 0.15s;
+  min-width: 0;
+}
+
+.bottom-nav-item span {
+  white-space: nowrap;
+  font-size: 0.68rem;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 }
 
 .bottom-nav-item.active {
@@ -517,6 +553,14 @@ button, input, select, textarea {
 
 [data-theme="dark"] .bottom-nav-item.active {
   color: var(--orange-action);
+}
+
+/* Force horizontal, non-wrapping chip and action buttons */
+.btn-nowrap, .chip-horizontal, .btn-map-horizontal {
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* TRUST & SAFETY PORTAL STYLES */

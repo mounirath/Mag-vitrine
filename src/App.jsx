@@ -107,8 +107,56 @@ export default function App() {
   // Supabase Backend Settings & Migration modal
   const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
-  // Supabase Super-Admin Dashboard modal
-  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(false);
+  // Check if current browser URL corresponds to /admin
+  const checkIsAdminRoute = () => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const search = new URLSearchParams(window.location.search).get('view');
+    return path === '/admin' || path.startsWith('/admin/') || hash === '#admin' || search === 'admin';
+  };
+
+  // Supabase Super-Admin Dashboard modal state initialized from URL
+  const [isAdminDashboardOpen, setIsAdminDashboardOpen] = useState(checkIsAdminRoute);
+
+  // Sync URL changes (Back / Forward button, direct hash or route)
+  React.useEffect(() => {
+    const handleUrlChange = () => {
+      if (checkIsAdminRoute()) {
+        setIsAdminDashboardOpen(true);
+      }
+    };
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
+
+  const handleOpenAdminDashboard = () => {
+    setIsAdminDashboardOpen(true);
+    try {
+      if (window.location.pathname !== '/admin') {
+        window.history.pushState({ view: 'admin' }, '', '/admin');
+      }
+    } catch (e) {
+      window.location.hash = '#admin';
+    }
+  };
+
+  const handleCloseAdminDashboard = () => {
+    setIsAdminDashboardOpen(false);
+    try {
+      if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin')) {
+        window.history.pushState(null, '', '/');
+      } else if (window.location.hash === '#admin') {
+        window.history.pushState(null, '', window.location.pathname);
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
 
   // Toggle favorite
   const handleToggleFavorite = (productId) => {
@@ -206,7 +254,7 @@ export default function App() {
           onOpenAuth={(mode) => setAuthModalConfig({ isOpen: true, initialMode: mode || 'login' })}
           onLogout={logout}
           onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
-          onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
+          onOpenAdminDashboard={handleOpenAdminDashboard}
           isSupabaseConfigured={isSupabaseConfigured()}
           t={t}
         />
@@ -336,7 +384,7 @@ export default function App() {
             getCustomerReliability={getCustomerReliability}
             onOpenTerms={() => setIsTermsOpen(true)}
             onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
-            onOpenAdminDashboard={() => setIsAdminDashboardOpen(true)}
+            onOpenAdminDashboard={handleOpenAdminDashboard}
             stores={stores}
             orders={orders}
             lang={lang}
@@ -345,18 +393,22 @@ export default function App() {
         )}
       </div>
 
-      {/* Floating "Vendre (+)" Orange Button - VISIBLE ONLY FOR MERCHANTS / STORES */}
-      {isStoreUser && (
-        <button
-          className="btn-vendre-floating"
-          onClick={() => setIsPublishModalOpen(true)}
-          aria-label="Vendre ou publier une annonce"
-          title={lang === 'ar' ? 'نشر إعلان متجر جديد (+)' : 'Vendre ou publier une annonce'}
-        >
-          <Plus size={20} />
-          <span>{lang === 'ar' ? 'نشر إعلان (+)' : 'Vendre (+)'}</span>
-        </button>
-      )}
+      {/* Floating "Vendre (+)" Orange Button matching Screenshot 2 */}
+      <button
+        className="btn-vendre-floating"
+        onClick={() => {
+          if (currentUser) {
+            setIsPublishModalOpen(true);
+          } else {
+            setAuthModalConfig({ isOpen: true, initialMode: 'login' });
+          }
+        }}
+        aria-label="Vendre ou publier une annonce"
+        title={lang === 'ar' ? 'نشر إعلان جديد (+)' : 'Vendre (+)'}
+      >
+        <Plus size={20} />
+        <span>{lang === 'ar' ? 'نشر إعلان (+)' : 'Vendre (+)'}</span>
+      </button>
 
       {/* Bottom Navigation Bar matching screenshot */}
       <BottomNavBar
@@ -364,6 +416,13 @@ export default function App() {
         setActiveTab={setActiveTab}
         unreadMessages={1}
         isStoreUser={isStoreUser}
+        onOpenPublish={() => {
+          if (currentUser) {
+            setIsPublishModalOpen(true);
+          } else {
+            setAuthModalConfig({ isOpen: true, initialMode: 'login' });
+          }
+        }}
         lang={lang}
         t={t}
       />
@@ -593,7 +652,7 @@ export default function App() {
       {/* 18. Supabase Super-Admin Dashboard Modal */}
       <SupabaseAdminDashboardModal
         isOpen={isAdminDashboardOpen}
-        onClose={() => setIsAdminDashboardOpen(false)}
+        onClose={handleCloseAdminDashboard}
         stores={stores}
         products={products}
         orders={orders}

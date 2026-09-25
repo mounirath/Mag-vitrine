@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -110,6 +113,7 @@ fun AppHeader(
     modifier: Modifier = Modifier
 ) {
     var showRoleMenu by remember { mutableStateOf(false) }
+    var showLangMenu by remember { mutableStateOf(false) }
 
     Surface(
         color = MaterialTheme.colorScheme.surface,
@@ -117,141 +121,216 @@ fun AppHeader(
         shadowElevation = 2.dp,
         modifier = modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 900.dp)
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (onBackClicked != null) {
-                        IconButton(
-                            onClick = onBackClicked,
+                val isCompact = maxWidth < 430.dp
+                val showSlogan = maxWidth > 360.dp
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Left Brand Section
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f, fill = false)
+                    ) {
+                        if (onBackClicked != null) {
+                            IconButton(
+                                onClick = onBackClicked,
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .testTag("btn_back")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Retour",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+
+                        Box(
                             modifier = Modifier
-                                .size(38.dp)
-                                .testTag("btn_back")
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(EmeraldPrimary),
+                            contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Retour",
-                                tint = MaterialTheme.colorScheme.primary
+                                imageVector = Icons.Default.Store,
+                                contentDescription = "Logo",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(EmeraldPrimary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Store,
-                            contentDescription = "Logo",
-                            tint = Color.White,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Column {
-                        Text(
-                            text = "MAG VITRINE",
-                            fontWeight = FontWeight.Black,
-                            fontSize = 17.sp,
-                            color = MaterialTheme.colorScheme.primary,
-                            letterSpacing = 0.5.sp
-                        )
-                        Text(
-                            text = LanguageManager.getSlogan(currentLanguage),
-                            fontSize = 10.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Language Switcher Selector (FR | العربية | EN)
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 4.dp, vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AppLanguage.values().forEach { lang ->
-                            val isSelected = lang == currentLanguage
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
-                                    .clickable { onLanguageSelected(lang) }
-                                    .padding(horizontal = 6.dp, vertical = 3.dp)
-                            ) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Column {
+                            Text(
+                                text = "MAG VITRINE",
+                                fontWeight = FontWeight.Black,
+                                fontSize = if (isCompact) 15.sp else 17.sp,
+                                color = MaterialTheme.colorScheme.primary,
+                                letterSpacing = 0.5.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (showSlogan) {
                                 Text(
-                                    text = lang.displayName,
-                                    fontSize = 11.sp,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                    text = LanguageManager.getSlogan(currentLanguage),
+                                    fontSize = 9.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
 
-                    // User Role Chip (Client / Magasin / Admin)
-                    Box {
-                        Surface(
-                            shape = RoundedCornerShape(14.dp),
-                            color = when (userRole) {
-                                UserRole.CUSTOMER -> MaterialTheme.colorScheme.primaryContainer
-                                UserRole.STORE -> AmberSecondary.copy(alpha = 0.2f)
-                                UserRole.ADMIN -> PromoRed.copy(alpha = 0.15f)
-                            },
-                            modifier = Modifier
-                                .clickable { showRoleMenu = true }
-                                .testTag("btn_switch_role")
-                        ) {
-                            Text(
-                                text = when (userRole) {
-                                    UserRole.CUSTOMER -> "👤 Client"
-                                    UserRole.STORE -> "🏪 Magasin"
-                                    UserRole.ADMIN -> "👑 Admin"
-                                },
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                color = when (userRole) {
-                                    UserRole.CUSTOMER -> MaterialTheme.colorScheme.onPrimaryContainer
-                                    UserRole.STORE -> AmberSecondary
-                                    UserRole.ADMIN -> PromoRed
+                    // Right Actions Section (Language + Role + Cart)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        // Adaptive Language Switcher
+                        if (isCompact) {
+                            // Compact dropdown language selector to save space on small screens
+                            Box {
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    modifier = Modifier
+                                        .clickable { showLangMenu = true }
+                                        .testTag("btn_lang_compact")
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = currentLanguage.displayName,
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Spacer(modifier = Modifier.width(2.dp))
+                                        Text(
+                                            text = "▾",
+                                            fontSize = 10.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
                                 }
-                            )
+
+                                DropdownMenu(
+                                    expanded = showLangMenu,
+                                    onDismissRequest = { showLangMenu = false }
+                                ) {
+                                    AppLanguage.values().forEach { lang ->
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    text = lang.displayName,
+                                                    fontWeight = if (lang == currentLanguage) FontWeight.Bold else FontWeight.Normal
+                                                )
+                                            },
+                                            onClick = {
+                                                onLanguageSelected(lang)
+                                                showLangMenu = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            // Full segmented language control on larger screens
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .padding(horizontal = 3.dp, vertical = 2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AppLanguage.values().forEach { lang ->
+                                    val isSelected = lang == currentLanguage
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(14.dp))
+                                            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
+                                            .clickable { onLanguageSelected(lang) }
+                                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                                    ) {
+                                        Text(
+                                            text = lang.displayName,
+                                            fontSize = 11.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
                         }
 
-                        DropdownMenu(
-                            expanded = showRoleMenu,
-                            onDismissRequest = { showRoleMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("👤 Espace Client") },
-                                onClick = {
-                                    onRoleSelected(UserRole.CUSTOMER)
-                                    showRoleMenu = false
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("🏪 Espace Magasin") },
-                                onClick = {
-                                    onRoleSelected(UserRole.STORE)
-                                    showRoleMenu = false
-                                }
-                            )
-                            if (userRole == UserRole.ADMIN) {
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        // User Role Chip (Client / Magasin / Admin) - Always offers Admin access
+                        Box {
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = when (userRole) {
+                                    UserRole.CUSTOMER -> MaterialTheme.colorScheme.primaryContainer
+                                    UserRole.STORE -> AmberSecondary.copy(alpha = 0.2f)
+                                    UserRole.ADMIN -> PromoRed.copy(alpha = 0.15f)
+                                },
+                                modifier = Modifier
+                                    .clickable { showRoleMenu = true }
+                                    .testTag("btn_switch_role")
+                            ) {
+                                Text(
+                                    text = when (userRole) {
+                                        UserRole.CUSTOMER -> "👤 Client"
+                                        UserRole.STORE -> "🏪 Magasin"
+                                        UserRole.ADMIN -> "👑 Admin"
+                                    },
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
+                                    color = when (userRole) {
+                                        UserRole.CUSTOMER -> MaterialTheme.colorScheme.onPrimaryContainer
+                                        UserRole.STORE -> AmberSecondary
+                                        UserRole.ADMIN -> PromoRed
+                                    }
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = showRoleMenu,
+                                onDismissRequest = { showRoleMenu = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("👤 Espace Client") },
+                                    onClick = {
+                                        onRoleSelected(UserRole.CUSTOMER)
+                                        showRoleMenu = false
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("🏪 Espace Magasin") },
+                                    onClick = {
+                                        onRoleSelected(UserRole.STORE)
+                                        showRoleMenu = false
+                                    }
+                                )
+                                // ALWAYS ACCESSIBLE: Espace Administrateur
                                 DropdownMenuItem(
                                     text = { Text("👑 Espace Administrateur") },
                                     onClick = {
@@ -261,31 +340,32 @@ fun AppHeader(
                                 )
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
 
-                    // Cart Icon with Badge
-                    IconButton(
-                        onClick = onCartClicked,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .testTag("btn_header_cart")
-                    ) {
-                        BadgedBox(
-                            badge = {
-                                if (cartItemCount > 0) {
-                                    Badge(containerColor = MaterialTheme.colorScheme.primary) {
-                                        Text(cartItemCount.toString(), fontSize = 10.sp)
+                        // Cart Icon with Badge
+                        IconButton(
+                            onClick = onCartClicked,
+                            modifier = Modifier
+                                .size(34.dp)
+                                .testTag("btn_header_cart")
+                        ) {
+                            BadgedBox(
+                                badge = {
+                                    if (cartItemCount > 0) {
+                                        Badge(containerColor = MaterialTheme.colorScheme.primary) {
+                                            Text(cartItemCount.toString(), fontSize = 9.sp)
+                                        }
                                     }
                                 }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ShoppingCart,
+                                    contentDescription = "Panier",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ShoppingCart,
-                                contentDescription = "Panier",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
                         }
                     }
                 }
@@ -301,12 +381,14 @@ fun ProductCard(
     onProductClick: () -> Unit,
     onAddToCartClick: () -> Unit,
     onStoreClick: (String) -> Unit,
+    isFavorite: Boolean = false,
+    onToggleFavorite: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val formatter = remember { NumberFormat.getNumberInstance(Locale.FRANCE) }
 
     Card(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
@@ -319,7 +401,7 @@ fun ProductCard(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(145.dp)
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 if (item.primaryImageUrl.isNotBlank()) {
@@ -339,6 +421,26 @@ fun ProductCard(
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.outline,
                             modifier = Modifier.size(44.dp)
+                        )
+                    }
+                }
+
+                // Heart Favorite Button (Top End) matching Mockup
+                Surface(
+                    shape = CircleShape,
+                    color = Color.White.copy(alpha = 0.85f),
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .size(32.dp)
+                        .clickable(onClick = onToggleFavorite)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favori",
+                            tint = if (isFavorite) Color.Red else Color(0xFF64748B),
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
@@ -389,97 +491,62 @@ fun ProductCard(
                         }
                     }
                 }
-
-                // Delivery badge
-                if (item.product.deliveryAvailable) {
-                    Surface(
-                        color = EmeraldPrimary.copy(alpha = 0.9f),
-                        shape = CircleShape,
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocalShipping,
-                            contentDescription = "Livraison disponible",
-                            tint = Color.White,
-                            modifier = Modifier
-                                .padding(5.dp)
-                                .size(13.dp)
-                        )
-                    }
-                }
             }
 
             // Product Details
             Column(modifier = Modifier.padding(10.dp)) {
-                // Store Name
-                if (item.store != null) {
-                    Text(
-                        text = item.store.name,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.clickable { onStoreClick(item.store.id) }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(2.dp))
-
                 // Product Name
                 Text(
                     text = item.product.name,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
-                    maxLines = 2,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(3.dp))
 
-                // Price Row
+                // Price Row matching Mockup
+                val priceDzd = item.product.price
+                val priceEur = (priceDzd / 220).toInt()
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column {
-                        if (item.product.isPromotion && item.product.oldPrice != null) {
-                            Text(
-                                text = "${formatter.format(item.product.oldPrice)} DA",
-                                fontSize = 11.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textDecoration = TextDecoration.LineThrough
-                            )
-                        }
-                        Text(
-                            text = "${formatter.format(item.effectivePrice)} DA",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = if (item.product.isPromotion) PromoRed else MaterialTheme.colorScheme.primary
-                        )
-                    }
+                    Text(
+                        text = "${formatter.format(priceDzd)} DA",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "$priceEur €",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = com.example.ui.theme.GoldCta
+                    )
+                }
 
-                    // Add to Cart Button
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                            .clickable(onClick = onAddToCartClick)
-                            .testTag("btn_add_to_cart_${item.product.id}"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ShoppingCart,
-                            contentDescription = "Ajouter",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
+                Spacer(modifier = Modifier.height(4.dp))
+
+                // Location Pin
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = Color(0xFF94A3B8),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Text(
+                        text = item.store?.let { "${it.wilaya}" } ?: "Algérie",
+                        fontSize = 11.sp,
+                        color = Color(0xFF64748B),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
@@ -647,76 +714,181 @@ fun AppBottomNav(
     cartCount: Int,
     userRole: UserRole,
     currentLanguage: AppLanguage,
+    onOpenPublish: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
         tonalElevation = 8.dp,
-        modifier = modifier
+        modifier = modifier.fillMaxWidth()
     ) {
-        NavigationBarItem(
-            selected = currentScreen is com.example.ui.viewmodel.Screen.Home,
-            onClick = { onNavigate(com.example.ui.viewmodel.Screen.Home) },
-            icon = { Icon(imageVector = Icons.Default.Home, contentDescription = "Accueil") },
-            label = { Text(LanguageManager.get("home", currentLanguage), fontSize = 10.sp) }
-        )
-
-        NavigationBarItem(
-            selected = currentScreen is com.example.ui.viewmodel.Screen.Catalog,
-            onClick = { onNavigate(com.example.ui.viewmodel.Screen.Catalog()) },
-            icon = { Icon(imageVector = Icons.Default.ShoppingBag, contentDescription = "Catalogue") },
-            label = { Text(LanguageManager.get("categories", currentLanguage), fontSize = 10.sp) }
-        )
-
-        NavigationBarItem(
-            selected = currentScreen is com.example.ui.viewmodel.Screen.MapView,
-            onClick = { onNavigate(com.example.ui.viewmodel.Screen.MapView) },
-            icon = { Icon(imageVector = Icons.Default.LocationOn, contentDescription = "Carte") },
-            label = { Text(LanguageManager.get("map_view", currentLanguage), fontSize = 10.sp) }
-        )
-
-        NavigationBarItem(
-            selected = currentScreen is com.example.ui.viewmodel.Screen.OrderTracking,
-            onClick = { onNavigate(com.example.ui.viewmodel.Screen.OrderTracking()) },
-            icon = { Icon(imageVector = Icons.Default.LocalShipping, contentDescription = "Commandes") },
-            label = { Text("Suivi", fontSize = 10.sp) }
-        )
-
-        when (userRole) {
-            UserRole.STORE -> {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            NavigationBar(
+                containerColor = Color.Transparent,
+                tonalElevation = 0.dp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 600.dp)
+            ) {
+                // 1. Home / الرئيسية
+                val isHome = currentScreen is com.example.ui.viewmodel.Screen.Home
                 NavigationBarItem(
-                    selected = currentScreen is com.example.ui.viewmodel.Screen.StoreDashboard,
-                    onClick = { onNavigate(com.example.ui.viewmodel.Screen.StoreDashboard) },
-                    icon = { Icon(imageVector = Icons.Default.Store, contentDescription = "Magasin") },
-                    label = { Text("Mon Magasin", fontSize = 10.sp) }
+                    selected = isHome,
+                    onClick = { onNavigate(com.example.ui.viewmodel.Screen.Home) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Home,
+                            contentDescription = "Accueil",
+                            tint = if (isHome) com.example.ui.theme.GoldCta else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = LanguageManager.get("home", currentLanguage),
+                            fontSize = 11.sp,
+                            fontWeight = if (isHome) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isHome) com.example.ui.theme.GoldCta else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    alwaysShowLabel = true
                 )
-            }
-            UserRole.ADMIN -> {
+
+                // 2. Recherche / بحث وموقع (Local-Connect / Map)
+                val isMap = currentScreen is com.example.ui.viewmodel.Screen.MapView
                 NavigationBarItem(
-                    selected = currentScreen is com.example.ui.viewmodel.Screen.AdminPanel,
-                    onClick = { onNavigate(com.example.ui.viewmodel.Screen.AdminPanel) },
-                    icon = { Icon(imageVector = Icons.Default.CheckCircle, contentDescription = "Admin") },
-                    label = { Text("Admin", fontSize = 10.sp) }
+                    selected = isMap,
+                    onClick = { onNavigate(com.example.ui.viewmodel.Screen.MapView) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Recherche",
+                            tint = if (isMap) com.example.ui.theme.GoldCta else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = LanguageManager.get("local_connect", currentLanguage),
+                            fontSize = 11.sp,
+                            fontWeight = if (isMap) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isMap) com.example.ui.theme.GoldCta else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    alwaysShowLabel = true
                 )
-            }
-            UserRole.CUSTOMER -> {
+
+                // 3. Publier / Vendre (+) center tab matching Mockup
                 NavigationBarItem(
-                    selected = currentScreen is com.example.ui.viewmodel.Screen.Cart,
-                    onClick = { onNavigate(com.example.ui.viewmodel.Screen.Cart) },
+                    selected = false,
+                    onClick = onOpenPublish,
+                    icon = {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(com.example.ui.theme.GoldCta),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Publier",
+                                tint = Color.White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    label = {
+                        Text(
+                            text = LanguageManager.get("vendre_cta", currentLanguage),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = com.example.ui.theme.GoldCta,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    alwaysShowLabel = true
+                )
+
+                // 4. Messages / رسائل
+                val isMessages = currentScreen is com.example.ui.viewmodel.Screen.Messages
+                NavigationBarItem(
+                    selected = isMessages,
+                    onClick = { onNavigate(com.example.ui.viewmodel.Screen.Messages) },
                     icon = {
                         BadgedBox(
                             badge = {
-                                if (cartCount > 0) {
-                                    Badge(containerColor = MaterialTheme.colorScheme.primary) {
-                                        Text(cartCount.toString(), fontSize = 9.sp)
-                                    }
+                                Badge(containerColor = com.example.ui.theme.GoldCta) {
+                                    Text("1", fontSize = 8.sp, color = Color.White)
                                 }
                             }
                         ) {
-                            Icon(imageVector = Icons.Default.ShoppingCart, contentDescription = "Panier")
+                            Icon(
+                                imageVector = Icons.Default.ChatBubbleOutline,
+                                contentDescription = "Messages",
+                                tint = if (isMessages) com.example.ui.theme.GoldCta else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     },
-                    label = { Text(LanguageManager.get("cart", currentLanguage), fontSize = 10.sp) }
+                    label = {
+                        Text(
+                            text = LanguageManager.get("messages_tab", currentLanguage),
+                            fontSize = 11.sp,
+                            fontWeight = if (isMessages) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isMessages) com.example.ui.theme.GoldCta else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    alwaysShowLabel = true
+                )
+
+                // 5. Profil / حسابي
+                val isProfile = currentScreen is com.example.ui.viewmodel.Screen.Profile ||
+                                currentScreen is com.example.ui.viewmodel.Screen.StoreDashboard ||
+                                currentScreen is com.example.ui.viewmodel.Screen.AdminPanel
+                NavigationBarItem(
+                    selected = isProfile,
+                    onClick = {
+                        when (userRole) {
+                            UserRole.STORE -> onNavigate(com.example.ui.viewmodel.Screen.StoreDashboard)
+                            UserRole.ADMIN -> onNavigate(com.example.ui.viewmodel.Screen.AdminPanel)
+                            UserRole.CUSTOMER -> onNavigate(com.example.ui.viewmodel.Screen.Profile)
+                        }
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Profil",
+                            tint = if (isProfile) com.example.ui.theme.GoldCta else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    label = {
+                        Text(
+                            text = when (userRole) {
+                                UserRole.STORE -> LanguageManager.get("my_store", currentLanguage)
+                                UserRole.ADMIN -> LanguageManager.get("admin", currentLanguage)
+                                UserRole.CUSTOMER -> LanguageManager.get("profile_tab", currentLanguage)
+                            },
+                            fontSize = 11.sp,
+                            fontWeight = if (isProfile) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isProfile) com.example.ui.theme.GoldCta else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    alwaysShowLabel = true
                 )
             }
         }

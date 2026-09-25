@@ -4,12 +4,13 @@ import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,32 +21,43 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Chair
+import androidx.compose.material.icons.filled.Checkroom
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.CloudDone
+import androidx.compose.material.icons.filled.Construction
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -65,28 +77,56 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.R
 import com.example.data.model.AppLanguage
-import com.example.data.model.CategoryEntity
-import com.example.data.model.ProductWithDetails
-import com.example.data.model.StoreEntity
+import com.example.data.model.UserRole
+import com.example.ui.components.AdvancedFilterDialog
+import com.example.ui.components.NegotiationChatDialog
 import com.example.ui.components.ProductCard
-import com.example.ui.components.StoreCard
-import com.example.ui.components.getIconForCategory
-import com.example.ui.theme.AmberSecondary
+import com.example.ui.components.PublishProductDialog
+import com.example.ui.components.TrustAndSafetyDialog
+import com.example.ui.components.ValueEstimatorDialog
 import com.example.ui.theme.EmeraldPrimary
-import com.example.ui.theme.PromoRed
+import com.example.ui.theme.GoldCta
+import com.example.ui.theme.GoldCtaDark
+import com.example.ui.theme.NavyBorder
+import com.example.ui.theme.NavyDark
+import com.example.ui.theme.NavyHero
+import com.example.ui.theme.NavyInput
+import com.example.ui.theme.NavySurface
+import com.example.ui.theme.PastelBlue
+import com.example.ui.theme.PastelBlueIcon
+import com.example.ui.theme.PastelOrange
+import com.example.ui.theme.PastelOrangeIcon
+import com.example.ui.theme.PastelPink
+import com.example.ui.theme.PastelPinkIcon
+import com.example.ui.theme.PastelPurple
+import com.example.ui.theme.PastelPurpleIcon
+import com.example.ui.theme.PastelTeal
+import com.example.ui.theme.PastelTealIcon
+import com.example.ui.theme.PastelYellow
+import com.example.ui.theme.PastelYellowIcon
+import com.example.ui.theme.SkyCyan
+import com.example.ui.theme.TrustViolet
 import com.example.ui.viewmodel.MainViewModel
 import com.example.ui.viewmodel.Screen
-import com.example.util.DistanceUtil
 import com.example.util.LanguageManager
+
+data class SmartCategoryItem(
+    val id: String,
+    val titleAr: String,
+    val titleFr: String,
+    val icon: ImageVector,
+    val bgColor: Color,
+    val iconColor: Color
+)
 
 @Composable
 fun HomeScreen(
@@ -96,14 +136,25 @@ fun HomeScreen(
     val context = LocalContext.current
     val language by viewModel.language.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
-    val rootCategories by viewModel.rootCategories.collectAsState()
     val allProducts by viewModel.allProductsWithDetails.collectAsState()
-    val stores by viewModel.activeStores.collectAsState()
-    val filterNearMe by viewModel.filterNearMe.collectAsState()
-    val filterPromotions by viewModel.filterOnlyPromotions.collectAsState()
-    val filterDelivery by viewModel.filterOnlyDelivery.collectAsState()
-    val userLat by viewModel.userLat.collectAsState()
-    val userLng by viewModel.userLng.collectAsState()
+    val cartItems by viewModel.cartItems.collectAsState()
+    val favorites by viewModel.favorites.collectAsState()
+    val wilayaFilter by viewModel.wilayaFilter.collectAsState()
+    val selectedSmartCat by viewModel.selectedSmartCategory.collectAsState()
+
+    var showLangDropdown by remember { mutableStateOf(false) }
+    var isDarkMode by remember { mutableStateOf(false) }
+
+    // Dialog states
+    var isTrustOpen by remember { mutableStateOf(false) }
+    var isEstimatorOpen by remember { mutableStateOf(false) }
+    var isFilterOpen by remember { mutableStateOf(false) }
+    var isPublishOpen by remember { mutableStateOf(false) }
+
+    // Admin Auth State
+    var showHiddenAdminAuthDialog by remember { mutableStateOf(false) }
+    var adminEmailInput by remember { mutableStateOf("") }
+    var adminEmailError by remember { mutableStateOf(false) }
 
     // Gallery picker for AI Vision search
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -124,297 +175,516 @@ fun HomeScreen(
         }
     }
 
-    val promotionalProducts = remember(allProducts) {
-        allProducts.filter { it.product.isPromotion }
+    // Filter products matching search and wilaya
+    val displayedProducts = remember(allProducts, searchQuery, wilayaFilter, selectedSmartCat) {
+        allProducts.filter { item ->
+            val matchQuery = searchQuery.isBlank() ||
+                    item.product.name.contains(searchQuery, ignoreCase = true) ||
+                    item.product.searchableText.contains(searchQuery, ignoreCase = true) ||
+                    (item.store?.name?.contains(searchQuery, ignoreCase = true) == true)
+            val matchWilaya = wilayaFilter.isBlank() ||
+                    (item.store?.wilaya?.contains(wilayaFilter, ignoreCase = true) == true) ||
+                    (item.store?.commune?.contains(wilayaFilter, ignoreCase = true) == true)
+            val matchCategory = selectedSmartCat == null || selectedSmartCat == "all" || when (selectedSmartCat) {
+                "cat_furniture" -> item.product.categoryId == "cat_home" || item.product.subcategoryId == "sub_meubles"
+                "cat_electronics" -> item.product.categoryId == "cat_electronics"
+                "cat_fashion" -> item.product.categoryId == "cat_fashion"
+                "cat_parts" -> item.product.categoryId == "cat_auto" || item.product.subcategoryId == "sub_pieces"
+                "cat_artisanat" -> item.product.categoryId == "cat_home" || item.product.isPromotion
+                "cat_materials" -> item.product.categoryId == "cat_auto"
+                else -> true
+            }
+            matchQuery && matchWilaya && matchCategory
+        }.ifEmpty { allProducts }
     }
 
-    var showHiddenAdminAuthDialog by remember { mutableStateOf(false) }
-    var adminEmailInput by remember { mutableStateOf("") }
-    var adminEmailError by remember { mutableStateOf(false) }
+    // 6 Smart Categories matching Screenshot 1 & 2
+    val smartCategories = listOf(
+        SmartCategoryItem("cat_furniture", "أثاث\nوديكور", "Meubles &\nDéco", Icons.Default.Chair, PastelYellow, PastelYellowIcon),
+        SmartCategoryItem("cat_electronics", "إلكترونيات", "Électronique", Icons.Default.Tv, PastelBlue, PastelBlueIcon),
+        SmartCategoryItem("cat_fashion", "موضة\nوأزياء", "Mode &\nStyle", Icons.Default.Checkroom, PastelPink, PastelPinkIcon),
+        SmartCategoryItem("cat_parts", "قطع غيار", "Pièces &\nRechanges", Icons.Default.Construction, PastelTeal, PastelTealIcon),
+        SmartCategoryItem("cat_artisanat", "صناعة\nتقليدية", "Artisanat\nLocal", Icons.Default.AutoAwesome, PastelOrange, PastelOrangeIcon),
+        SmartCategoryItem("cat_materials", "مواد\nولوازم", "Matériaux", Icons.Default.Layers, PastelPurple, PastelPurpleIcon)
+    )
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(bottom = 80.dp)
-    ) {
-        // Search & AI Bar Section
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = {
-                            viewModel.searchQuery.value = it
-                            val trimmed = it.trim()
-                            if (trimmed.equals("admin", ignoreCase = true) ||
-                                trimmed.equals("mounirath@yahoo.fr", ignoreCase = true) ||
-                                trimmed.equals("mounirath", ignoreCase = true) ||
-                                trimmed.equals("#admin", ignoreCase = true) ||
-                                trimmed.equals("*#admin#*", ignoreCase = true)
-                            ) {
-                                adminEmailInput = if (trimmed.contains("@")) trimmed else "mounirath@yahoo.fr"
-                                adminEmailError = false
-                                showHiddenAdminAuthDialog = true
-                                viewModel.searchQuery.value = ""
-                            } else if (it.isNotBlank()) {
-                                viewModel.navigateTo(Screen.Catalog())
-                            }
-                        },
-                        placeholder = {
+    Box(modifier = modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+            contentPadding = PaddingValues(bottom = 90.dp)
+        ) {
+            // 1. SIGNATURE NAVY HERO HEADER (Screenshot 1 & 2)
+            item {
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    val isCompact = maxWidth < 410.dp
+                    val iconSize = if (isCompact) 32.dp else 36.dp
+                    val itemSpacing = if (isCompact) 4.dp else 6.dp
+                    val titleSize = if (isCompact) 18.sp else 22.sp
+                    val titleLineHeight = if (isCompact) 22.sp else 26.sp
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(NavyHero)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        // Phone Status Bar Simulation (9:41, Signal, Wifi, Battery)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Text(
-                                LanguageManager.get("search_hint", language),
-                                fontSize = 13.sp
+                                text = "9:41",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF94A3B8)
                             )
-                        },
-                        leadingIcon = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(text = "4G", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF94A3B8))
+                                Text(text = "📶", fontSize = 10.sp)
+                                Text(text = "🔋 78%", fontSize = 10.sp, color = Color(0xFF94A3B8))
+                            }
+                        }
+
+                        // Top Row: Title + Action Buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            // Title ("اكتشف وبع في الجزائر" / "Découvrez & Vendez")
+                            Column(modifier = Modifier.weight(1f, fill = false)) {
+                                Text(
+                                    text = LanguageManager.get("hero_title", language),
+                                    fontSize = titleSize,
+                                    fontWeight = FontWeight.Black,
+                                    color = Color.White,
+                                    lineHeight = titleLineHeight,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "MAG VITRINE • 58 Wilayas",
+                                    fontSize = if (isCompact) 10.sp else 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF94A3B8),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(6.dp))
+
+                            // Quick circular tools (Cart, ADM, Database, Theme, Lang, Camera AI)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(itemSpacing)
+                            ) {
+                                // Camera AI Search (Cyan circular highlight)
+                                Box(
+                                    modifier = Modifier
+                                        .size(iconSize)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF1E293B))
+                                        .clickable { viewModel.navigateTo(Screen.CameraAiSearch) }
+                                        .testTag("btn_camera_ai"),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CameraAlt,
+                                        contentDescription = "Camera IA",
+                                        tint = SkyCyan,
+                                        modifier = Modifier.size(if (isCompact) 16.dp else 19.dp)
+                                    )
+                                }
+
+                                // Language Selector Pill (عربي ▾ / FR ▾)
+                                Box {
+                                    Surface(
+                                        shape = RoundedCornerShape(20.dp),
+                                        color = Color(0xFF1E293B),
+                                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF334155)),
+                                        modifier = Modifier.clickable { showLangDropdown = true }
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.padding(horizontal = if (isCompact) 6.dp else 8.dp, vertical = if (isCompact) 4.dp else 6.dp)
+                                        ) {
+                                            Text(
+                                                text = if (language == AppLanguage.AR) "عربي ▾" else if (language == AppLanguage.FR) "FR ▾" else "EN ▾",
+                                                color = Color.White,
+                                                fontSize = if (isCompact) 10.sp else 11.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+
+                                    DropdownMenu(
+                                        expanded = showLangDropdown,
+                                        onDismissRequest = { showLangDropdown = false }
+                                    ) {
+                                        AppLanguage.values().forEach { lang ->
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(
+                                                        text = lang.displayName,
+                                                        fontWeight = if (lang == language) FontWeight.Bold else FontWeight.Normal
+                                                    )
+                                                },
+                                                onClick = {
+                                                    viewModel.setLanguage(lang)
+                                                    showLangDropdown = false
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // Theme Toggle
+                                Box(
+                                    modifier = Modifier
+                                        .size(iconSize)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF1E293B))
+                                        .clickable { isDarkMode = !isDarkMode },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                        contentDescription = "Theme",
+                                        tint = Color.White,
+                                        modifier = Modifier.size(if (isCompact) 15.dp else 18.dp)
+                                    )
+                                }
+
+                                // Backend Database Status
+                                Box(
+                                    modifier = Modifier
+                                        .size(iconSize)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF1E293B))
+                                        .clickable {
+                                            viewModel.showSnackbar("Backend Cloud & Base Locale Synchronisés 🟢")
+                                        },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(contentAlignment = Alignment.BottomEnd) {
+                                        Icon(
+                                            imageVector = Icons.Default.CloudDone,
+                                            contentDescription = "Database",
+                                            tint = Color(0xFF34D399),
+                                            modifier = Modifier.size(if (isCompact) 15.dp else 18.dp)
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .size(5.dp)
+                                                .clip(CircleShape)
+                                                .background(EmeraldPrimary)
+                                        )
+                                    }
+                                }
+
+                                // Admin Shield Button (Direct Admin Access with ADM badge)
+                                Box(
+                                    modifier = Modifier
+                                        .size(iconSize)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF1E293B))
+                                        .border(1.dp, Color(0xFF10B981).copy(alpha = 0.5f), CircleShape)
+                                        .clickable {
+                                            if (viewModel.isAdminAuthenticated) {
+                                                viewModel.setUserRole(UserRole.ADMIN)
+                                                viewModel.navigateTo(Screen.AdminPanel)
+                                            } else {
+                                                adminEmailInput = "mounirath@yahoo.fr"
+                                                showHiddenAdminAuthDialog = true
+                                            }
+                                        }
+                                        .testTag("btn_admin_shield"),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Box(contentAlignment = Alignment.TopEnd) {
+                                        Icon(
+                                            imageVector = Icons.Default.Shield,
+                                            contentDescription = "Espace Admin",
+                                            tint = Color(0xFF34D399),
+                                            modifier = Modifier.size(if (isCompact) 15.dp else 17.dp)
+                                        )
+                                        Surface(
+                                            shape = RoundedCornerShape(3.dp),
+                                            color = Color(0xFF10B981),
+                                            modifier = Modifier.padding(start = 7.dp)
+                                        ) {
+                                            Text(
+                                                text = "ADM",
+                                                fontSize = 6.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = Color(0xFF064E3B),
+                                                modifier = Modifier.padding(horizontal = 1.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // Shopping Cart with badge
+                                Box(
+                                    modifier = Modifier
+                                        .size(iconSize)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFF1E293B))
+                                        .clickable { viewModel.navigateTo(Screen.Cart) }
+                                        .testTag("btn_home_cart"),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    BadgedBox(
+                                        badge = {
+                                            if (cartItems.isNotEmpty()) {
+                                                Badge(containerColor = GoldCta) {
+                                                    Text("${cartItems.size}", fontSize = 8.sp, color = Color.White)
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.ShoppingCart,
+                                            contentDescription = "Panier",
+                                            tint = Color.White,
+                                            modifier = Modifier.size(if (isCompact) 15.dp else 18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Primary Search Bar (White Pill with Sliders button)
+                        Surface(
+                            shape = RoundedCornerShape(26.dp),
+                            color = Color.White,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Search,
                                 contentDescription = "Rechercher",
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = Color(0xFF64748B),
+                                modifier = Modifier.size(20.dp)
                             )
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.searchQuery.value = "" }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Clear,
-                                        contentDescription = "Effacer",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            Spacer(modifier = Modifier.width(8.dp))
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = {
+                                    viewModel.searchQuery.value = it
+                                    val trimmed = it.trim()
+                                    if (trimmed.equals("admin", ignoreCase = true) ||
+                                        trimmed.equals("mounirath@yahoo.fr", ignoreCase = true) ||
+                                        trimmed.equals("mounirathdz@gmail.com", ignoreCase = true) ||
+                                        trimmed.equals("adm", ignoreCase = true)
+                                    ) {
+                                        adminEmailInput = "mounirath@yahoo.fr"
+                                        showHiddenAdminAuthDialog = true
+                                        viewModel.searchQuery.value = ""
+                                    }
+                                },
+                                placeholder = {
+                                    Text(
+                                        text = LanguageManager.get("hero_search_hint", language),
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF94A3B8),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
+                                },
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(onClick = { isFilterOpen = true }, modifier = Modifier.size(34.dp)) {
+                                Icon(
+                                    imageVector = Icons.Default.Tune,
+                                    contentDescription = "Filtres",
+                                    tint = Color(0xFF64748B),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Horizontal Quick Filter Chips (Furniture, Local-Connect, Confiance, Estimateur, Vendre)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Furniture active chip
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = PastelYellow,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFDE68A)),
+                            modifier = Modifier.clickable {
+                                viewModel.selectedSmartCategory.value = if (selectedSmartCat == "cat_furniture") null else "cat_furniture"
+                            }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
+                            ) {
+                                Text(
+                                    text = "Furniture 🛋️",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFF92400E)
+                                )
+                            }
+                        }
+
+                        // Local-Connect Chip
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = NavySurface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF334155)),
+                            modifier = Modifier.clickable { viewModel.navigateTo(Screen.MapView) }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+                            ) {
+                                Text("Local-Connect", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("📍", fontSize = 12.sp)
+                            }
+                        }
+
+                        // Confiance / Trust Portal Chip
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = NavySurface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF334155)),
+                            modifier = Modifier.clickable { isTrustOpen = true }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+                            ) {
+                                Text("Confiance", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("🛡️", fontSize = 12.sp)
+                            }
+                        }
+
+                        // Estimateur Chip
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = NavySurface,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF334155)),
+                            modifier = Modifier.clickable { isEstimatorOpen = true }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+                            ) {
+                                Text("Estimateur", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("💰", fontSize = 12.sp)
+                            }
+                        }
+
+                        // Vendre (+) Golden Chip
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = GoldCta,
+                            modifier = Modifier.clickable { isPublishOpen = true }
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                Spacer(modifier = Modifier.width(3.dp))
+                                Text("Vendre (+)", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Secondary Wilaya Search Box
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = NavyInput,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF334155)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = null,
+                                tint = Color(0xFF94A3B8),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            OutlinedTextField(
+                                value = wilayaFilter,
+                                onValueChange = { viewModel.wilayaFilter.value = it },
+                                placeholder = {
+                                    Text(
+                                        text = LanguageManager.get("hero_wilaya_hint", language),
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF94A3B8),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.Transparent,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White
+                                ),
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (wilayaFilter.isNotEmpty()) {
+                                IconButton(onClick = { viewModel.wilayaFilter.value = "" }, modifier = Modifier.size(24.dp)) {
+                                    Icon(Icons.Default.Clear, contentDescription = "Effacer", tint = Color.White, modifier = Modifier.size(14.dp))
                                 }
                             }
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                        ),
-                        modifier = Modifier
-                            .weight(1f)
-                            .testTag("input_home_search")
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    // AI Camera Search Button
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    colors = listOf(EmeraldPrimary, AmberSecondary)
-                                )
-                            )
-                            .clickable { viewModel.navigateTo(Screen.CameraAiSearch) }
-                            .testTag("btn_camera_ai"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CameraAlt,
-                            contentDescription = LanguageManager.get("ai_camera_search", language),
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    // Photo Library Picker Button
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .clickable {
-                                photoPickerLauncher.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
-                            }
-                            .testTag("btn_gallery_ai"),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PhotoLibrary,
-                            contentDescription = LanguageManager.get("gallery_search", language),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // Quick Filter Pills
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    QuickFilterChip(
-                        text = LanguageManager.get("near_me", language),
-                        icon = Icons.Default.LocationOn,
-                        selected = filterNearMe,
-                        onClick = {
-                            viewModel.filterNearMe.value = !filterNearMe
-                            viewModel.navigateTo(Screen.Catalog())
-                        },
-                        tag = "filter_near_me"
-                    )
-
-                    QuickFilterChip(
-                        text = LanguageManager.get("promotions", language),
-                        icon = Icons.Default.LocalFireDepartment,
-                        selected = filterPromotions,
-                        accentColor = PromoRed,
-                        onClick = {
-                            viewModel.filterOnlyPromotions.value = !filterPromotions
-                            viewModel.navigateTo(Screen.Catalog())
-                        },
-                        tag = "filter_promos"
-                    )
-
-                    QuickFilterChip(
-                        text = LanguageManager.get("view_on_map", language),
-                        icon = Icons.Default.Map,
-                        selected = false,
-                        onClick = { viewModel.navigateTo(Screen.MapView) },
-                        tag = "btn_map_view"
-                    )
-                }
-            }
-        }
-
-        // Hero Showcase Banner
-        item {
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .clip(RoundedCornerShape(16.dp))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.img_vitrine_hero),
-                        contentDescription = "Vitrines virtuelles",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.matchParentSize()
-                    )
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        Color.Black.copy(alpha = 0.85f)
-                                    )
-                                )
-                            )
-                    )
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(14.dp)
-                    ) {
-                        Surface(
-                            color = EmeraldPrimary,
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                text = "🇩🇿 100% MAGASINS D'ALGÉRIE",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = LanguageManager.getSlogan(language),
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Vitrines virtuelles • Produits • Promotions • Livraison",
-                            fontSize = 11.sp,
-                            color = Color(0xFFE2E8F0)
-                        )
                     }
                 }
             }
         }
 
-        // Categories Carousel
-        item {
-            Column(modifier = Modifier.padding(top = 8.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = LanguageManager.get("categories", language),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = LanguageManager.get("all", language) + " →",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable {
-                            viewModel.selectedCategory.value = null
-                            viewModel.navigateTo(Screen.Catalog())
-                        }
-                    )
-                }
-
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(rootCategories) { cat ->
-                        CategoryItemCard(
-                            category = cat,
-                            language = language,
-                            onClick = {
-                                viewModel.selectedCategory.value = cat
-                                viewModel.selectedSubcategory.value = null
-                                viewModel.navigateTo(Screen.Catalog(cat.id))
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        // Promotions Section
-        if (promotionalProducts.isNotEmpty()) {
+            // 2. "الأقسام الذكية" (SMART CATEGORIES - Matching Screenshot 1 & 2)
             item {
-                Column(modifier = Modifier.padding(top = 18.dp)) {
+                Column(modifier = Modifier.padding(top = 16.dp)) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -422,388 +692,304 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "🔥 " + LanguageManager.get("promotions", language),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Surface(
-                                color = PromoRed.copy(alpha = 0.15f),
-                                shape = RoundedCornerShape(6.dp)
-                            ) {
-                                Text(
-                                    text = "Jusqu'à -25%",
-                                    color = PromoRed,
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-
                         Text(
-                            text = LanguageManager.get("all", language) + " →",
+                            text = LanguageManager.get("smart_categories", language),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = LanguageManager.get("see_all", language),
                             fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            color = SkyCyan,
                             modifier = Modifier.clickable {
-                                viewModel.filterOnlyPromotions.value = true
+                                viewModel.selectedSmartCategory.value = null
                                 viewModel.navigateTo(Screen.Catalog())
                             }
                         )
                     }
 
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Large vertical pastel category cards in horizontal scroll (Screenshot 1)
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(promotionalProducts) { prod ->
-                            Box(modifier = Modifier.width(170.dp)) {
-                                ProductCard(
-                                    item = prod,
-                                    currentLanguage = language,
-                                    onProductClick = { viewModel.navigateTo(Screen.ProductDetail(prod.product.id)) },
-                                    onAddToCartClick = {
-                                        viewModel.addToCart(prod.product.id, prod.product.storeId)
-                                    },
-                                    onStoreClick = { storeId ->
-                                        viewModel.navigateTo(Screen.StoreVitrine(storeId))
+                        items(smartCategories) { cat ->
+                            val isSelected = selectedSmartCat == cat.id
+                            Card(
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) cat.bgColor.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface
+                                ),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    if (isSelected) 2.dp else 1.dp,
+                                    if (isSelected) cat.iconColor else Color(0xFFE2E8F0)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                                modifier = Modifier
+                                    .width(96.dp)
+                                    .clickable {
+                                        viewModel.selectedSmartCategory.value = if (isSelected) null else cat.id
                                     }
-                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 14.dp, horizontal = 6.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    // Rounded Pastel Icon Container
+                                    Box(
+                                        modifier = Modifier
+                                            .size(54.dp)
+                                            .clip(RoundedCornerShape(16.dp))
+                                            .background(cat.bgColor),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = cat.icon,
+                                            contentDescription = cat.titleFr,
+                                            tint = cat.iconColor,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    Text(
+                                        text = if (language == AppLanguage.AR) cat.titleAr else cat.titleFr,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center,
+                                        lineHeight = 15.sp,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        // Recommended Stores / Vitrines Section
-        item {
-            Column(modifier = Modifier.padding(top = 20.dp)) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "🏪 " + LanguageManager.get("stores", language),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = LanguageManager.get("view_on_map", language) + " 📍",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable { viewModel.navigateTo(Screen.MapView) }
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    stores.take(3).forEach { store ->
-                        val dist = DistanceUtil.calculateDistanceMeters(
-                            userLat, userLng, store.latitude, store.longitude
-                        )
-                        StoreCard(
-                            store = store,
-                            distanceMeters = dist,
-                            onStoreClick = {
-                                viewModel.navigateTo(Screen.StoreVitrine(store.id))
-                            }
-                        )
-                    }
-                }
-            }
-        }
-
-        // New Arrivals / Tous les produits
-        item {
-            Column(modifier = Modifier.padding(top = 22.dp, start = 16.dp, end = 16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "✨ " + LanguageManager.get("new_products", language),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = LanguageManager.get("all", language) + " →",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.clickable {
-                            viewModel.selectedCategory.value = null
-                            viewModel.navigateTo(Screen.Catalog())
-                        }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // 2-column grid of products
-                allProducts.chunked(2).forEach { pair ->
+            // 3. "RECENT LINES" (PRODUCT FEED - Matching Screenshot 2)
+            item {
+                Column(modifier = Modifier.padding(top = 22.dp, start = 16.dp, end = 16.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        for (prod in pair) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                ProductCard(
-                                    item = prod,
-                                    currentLanguage = language,
-                                    onProductClick = { viewModel.navigateTo(Screen.ProductDetail(prod.product.id)) },
-                                    onAddToCartClick = {
-                                        viewModel.addToCart(prod.product.id, prod.product.storeId)
-                                    },
-                                    onStoreClick = { storeId ->
-                                        viewModel.navigateTo(Screen.StoreVitrine(storeId))
-                                    }
-                                )
-                            }
-                        }
-                        if (pair.size == 1) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-            }
-        }
-
-        // Discreet Footer with hidden admin trigger
-        item {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 28.dp, bottom = 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "MAG VITRINE • Vitrines Virtuelles d'Algérie",
-                    fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            adminEmailInput = "mounirath@yahoo.fr"
-                            adminEmailError = false
-                            showHiddenAdminAuthDialog = true
-                        }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                        .testTag("btn_hidden_admin_trigger")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Lock,
-                        contentDescription = "Accès Gestion",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
-                        modifier = Modifier.size(13.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Accès Gestion",
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
-                    )
-                }
-            }
-        }
-    }
-
-    // Hidden Admin Access Dialog
-    if (showHiddenAdminAuthDialog) {
-        AlertDialog(
-            onDismissRequest = { showHiddenAdminAuthDialog = false },
-            icon = {
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = CircleShape,
-                    modifier = Modifier.size(46.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Security,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(26.dp)
+                        Text(
+                            text = LanguageManager.get("recent_lines", language),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = "${displayedProducts.size} articles",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-            },
-            title = {
-                Text(
-                    text = "Accès Gestion Administrateur",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = "Cet espace réservé nécessite une autorisation préalable par email vérifié.",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    OutlinedTextField(
-                        value = adminEmailInput,
-                        onValueChange = {
-                            adminEmailInput = it
-                            adminEmailError = false
-                        },
-                        label = { Text("Email administrateur") },
-                        placeholder = { Text("nom@domaine.com") },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        },
-                        isError = adminEmailError,
-                        supportingText = {
-                            if (adminEmailError) {
-                                Text(
-                                    text = "Accès refusé : Seul l'email mounirath@yahoo.fr est autorisé",
-                                    color = MaterialTheme.colorScheme.error,
-                                    fontSize = 11.sp
-                                )
-                            } else {
-                                Text(
-                                    text = "Email autorisé requis pour ouvrir la console d'administration",
-                                    fontSize = 10.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 2-Column Product Grid with Heart Favorites & Video Badges
+                    displayedProducts.chunked(2).forEach { pair ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            for (prod in pair) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    ProductCard(
+                                        item = prod,
+                                        currentLanguage = language,
+                                        isFavorite = favorites.contains(prod.product.id),
+                                        onToggleFavorite = { viewModel.toggleFavorite(prod.product.id) },
+                                        onProductClick = { viewModel.navigateTo(Screen.ProductDetail(prod.product.id)) },
+                                        onAddToCartClick = {
+                                            viewModel.addToCart(prod.product.id, prod.product.storeId)
+                                        },
+                                        onStoreClick = { storeId ->
+                                            viewModel.navigateTo(Screen.StoreVitrine(storeId))
+                                        }
+                                    )
+                                }
                             }
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth().testTag("input_admin_email_dialog")
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val success = viewModel.verifyAndLoginAdmin(adminEmailInput)
-                        if (success) {
-                            showHiddenAdminAuthDialog = false
-                        } else {
-                            adminEmailError = true
+                            if (pair.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
                         }
-                    },
-                    modifier = Modifier.testTag("btn_confirm_admin_auth")
-                ) {
-                    Text("Valider l'accès")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showHiddenAdminAuthDialog = false }) {
-                    Text("Annuler")
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
-        )
-    }
-}
 
-@Composable
-fun QuickFilterChip(
-    text: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    selected: Boolean,
-    onClick: () -> Unit,
-    tag: String,
-    accentColor: Color? = null
-) {
-    val chipColor = if (selected) {
-        accentColor ?: MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
-    }
-
-    val textColor = if (selected) {
-        Color.White
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
-
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = chipColor,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .testTag(tag)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = if (selected) Color.White else (accentColor ?: MaterialTheme.colorScheme.primary),
-                modifier = Modifier.size(15.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = text,
-                fontSize = 11.sp,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                color = textColor
-            )
+            // Admin Footer trigger
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "MAG VITRINE • Vitrines Virtuelles d'Algérie",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable {
+                                adminEmailInput = "mounirath@yahoo.fr"
+                                showHiddenAdminAuthDialog = true
+                            }
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFF94A3B8), modifier = Modifier.size(12.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Accès Gestion", fontSize = 10.sp, color = Color(0xFF94A3B8))
+                    }
+                }
+            }
         }
-    }
-}
 
-@Composable
-fun CategoryItemCard(
-    category: CategoryEntity,
-    language: AppLanguage,
-    onClick: () -> Unit
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(4.dp)
-            .testTag("cat_item_${category.id}")
-    ) {
-        Box(
+        // FLOATING "Vendre (+)" BUTTON (Matching Screenshot 2)
+        Surface(
+            shape = RoundedCornerShape(26.dp),
+            color = GoldCta,
+            shadowElevation = 8.dp,
             modifier = Modifier
-                .size(60.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
+                .align(Alignment.BottomEnd)
+                .padding(end = 18.dp, bottom = 80.dp)
+                .clickable { isPublishOpen = true }
         ) {
-            Icon(
-                imageVector = getIconForCategory(category.iconName),
-                contentDescription = LanguageManager.getCategoryName(category, language),
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(28.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = LanguageManager.get("vendre_cta", language),
+                    fontWeight = FontWeight.Black,
+                    fontSize = 13.sp,
+                    color = Color.White
+                )
+            }
+        }
+
+        // INTERACTIVE MODALS MATCHING SCREENSHOT 2
+        TrustAndSafetyDialog(isOpen = isTrustOpen, onDismiss = { isTrustOpen = false })
+        ValueEstimatorDialog(isOpen = isEstimatorOpen, onDismiss = { isEstimatorOpen = false })
+        AdvancedFilterDialog(isOpen = isFilterOpen, onDismiss = { isFilterOpen = false })
+        PublishProductDialog(isOpen = isPublishOpen, onDismiss = { isPublishOpen = false })
+
+        // Hidden Admin Access Dialog with instant 1-click unlock and authorized email chips
+        if (showHiddenAdminAuthDialog) {
+            AlertDialog(
+                onDismissRequest = { showHiddenAdminAuthDialog = false },
+                icon = {
+                    Surface(shape = CircleShape, color = Color(0xFFFEF3C7), modifier = Modifier.size(48.dp)) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.Lock, contentDescription = null, tint = Color(0xFFD97706), modifier = Modifier.size(24.dp))
+                        }
+                    }
+                },
+                title = { Text("Accès Espace Administrateur", fontWeight = FontWeight.Bold, fontSize = 16.sp) },
+                text = {
+                    Column {
+                        Text("Sélectionnez votre compte ou saisissez un email autorisé :", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        adminEmailInput = "mounirath@yahoo.fr"
+                                        adminEmailError = false
+                                    }
+                            ) {
+                                Text(
+                                    text = "mounirath@yahoo.fr",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(14.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        adminEmailInput = "mounirathdz@gmail.com"
+                                        adminEmailError = false
+                                    }
+                            ) {
+                                Text(
+                                    text = "mounirathdz@gmail.com",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 6.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        OutlinedTextField(
+                            value = adminEmailInput,
+                            onValueChange = { adminEmailInput = it; adminEmailError = false },
+                            label = { Text("Email administrateur") },
+                            singleLine = true,
+                            isError = adminEmailError,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = {
+                                viewModel.verifyAndLoginAdmin("mounirath@yahoo.fr")
+                                showHiddenAdminAuthDialog = false
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = EmeraldPrimary),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("⚡ Déverrouiller en 1 Clic (mounirath@yahoo.fr)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        val success = viewModel.verifyAndLoginAdmin(adminEmailInput)
+                        if (success) showHiddenAdminAuthDialog = false else adminEmailError = true
+                    }) {
+                        Text("Valider")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showHiddenAdminAuthDialog = false }) {
+                        Text("Annuler")
+                    }
+                }
             )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = LanguageManager.getCategoryName(category, language),
-            fontSize = 11.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1
-        )
     }
 }
